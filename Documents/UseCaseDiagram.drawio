@@ -1,0 +1,53 @@
+<mxfile host="app.diagrams.net" agent="claude-code" version="24.0.0">
+  <diagram id="usecase-online-bookstore" name="Use Case Diagram">
+    <mxGraphModel dx="1400" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1500" pageHeight="1300" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="n2" value="Online Bookstore" style="rounded=0;whiteSpace=wrap;html=1;verticalAlign=top;fontSize=16;fontStyle=1;fillColor=none;strokeColor=#666666;" vertex="1" parent="1"><mxGeometry x="300" y="40" width="900" height="1180" as="geometry"/></mxCell>
+        <mxCell id="n3" value="Buyer" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" vertex="1" parent="1"><mxGeometry x="70" y="430" width="40" height="80" as="geometry"/></mxCell>
+        <mxCell id="n4" value="Seller" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" vertex="1" parent="1"><mxGeometry x="70" y="180" width="40" height="80" as="geometry"/></mxCell>
+        <mxCell id="n5" value="Admin" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" vertex="1" parent="1"><mxGeometry x="1300" y="120" width="40" height="80" as="geometry"/></mxCell>
+        <mxCell id="n6" value="Payment Gateway" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" vertex="1" parent="1"><mxGeometry x="1300" y="640" width="40" height="80" as="geometry"/></mxCell>
+        <mxCell id="n7" value="Email / Notification Service" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" vertex="1" parent="1"><mxGeometry x="1300" y="900" width="40" height="80" as="geometry"/></mxCell>
+        <mxCell id="n8" value="UC1 Register / Log In" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1"><mxGeometry x="360" y="470" width="210" height="54" as="geometry"/></mxCell>
+        <mxCell id="n9" value="UC2 Reset Forgotten Password" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1"><mxGeometry x="360" y="560" width="210" height="54" as="geometry"/></mxCell>
+        <mxCell id="n10" value="UC3 Search Books" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1"><mxGeometry x="360" y="650" width="210" height="54" as="geometry"/></mxCell>
+        <mxCell id="n11" value="UC4 View Book Details" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1"><mxGeometry x="360" y="740" width="210" height="54" as="geometry"/></mxCell>
+        <mxCell id="n12" value="UC5 Manage Shopping Cart" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1"><mxGeometry x="360" y="830" width="210" height="54" as="geometry"/></mxCell>
+        <mxCell id="n13" value="UC6 Manage Wishlist" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1"><mxGeometry x="360" y="920" width="210" height="54" as="geometry"/></mxCell>
+        <mxCell id="n14" value="UC13 Rate &amp; Review Purchased Book" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1"><mxGeometry x="360" y="1010" width="210" height="54" as="geometry"/></mxCell>
+        <mxCell id="n15" value="UC12 Track Order Status" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1"><mxGeometry x="360" y="1100" width="210" height="54" as="geometry"/></mxCell>
+        <mxCell id="n16" value="UC8 Place Order &amp; Checkout" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1"><mxGeometry x="700" y="830" width="210" height="54" as="geometry"/></mxCell>
+        <mxCell id="n17" value="UC7 Apply Discount Code" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1"><mxGeometry x="700" y="640" width="210" height="54" as="geometry"/></mxCell>
+        <mxCell id="n18" value="UC9 Process Payment" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1"><mxGeometry x="1000" y="720" width="210" height="54" as="geometry"/></mxCell>
+        <mxCell id="n19" value="UC10 Generate Invoice / Receipt" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1"><mxGeometry x="1000" y="900" width="210" height="54" as="geometry"/></mxCell>
+        <mxCell id="n20" value="UC11 Send Order Confirmation" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1"><mxGeometry x="1000" y="1010" width="210" height="54" as="geometry"/></mxCell>
+        <mxCell id="n21" value="UC14 Manage Book Listings" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1"><mxGeometry x="700" y="150" width="210" height="54" as="geometry"/></mxCell>
+        <mxCell id="n22" value="UC15 Manage Incoming Orders" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1"><mxGeometry x="700" y="320" width="210" height="54" as="geometry"/></mxCell>
+        <mxCell id="n23" value="UC16 Moderate Listings &amp; Accounts" style="ellipse;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1"><mxGeometry x="700" y="470" width="210" height="54" as="geometry"/></mxCell>
+        <mxCell id="n24" style="endArrow=none;html=1;edgeStyle=none;" edge="1" parent="1" source="n3" target="n8"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="n25" style="endArrow=none;html=1;edgeStyle=none;" edge="1" parent="1" source="n3" target="n10"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="n26" style="endArrow=none;html=1;edgeStyle=none;" edge="1" parent="1" source="n3" target="n11"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="n27" style="endArrow=none;html=1;edgeStyle=none;" edge="1" parent="1" source="n3" target="n12"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="n28" style="endArrow=none;html=1;edgeStyle=none;" edge="1" parent="1" source="n3" target="n13"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="n29" style="endArrow=none;html=1;edgeStyle=none;" edge="1" parent="1" source="n3" target="n14"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="n30" style="endArrow=none;html=1;edgeStyle=none;" edge="1" parent="1" source="n3" target="n15"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="n31" style="endArrow=none;html=1;edgeStyle=none;" edge="1" parent="1" source="n3" target="n16"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="n32" style="endArrow=none;html=1;edgeStyle=none;" edge="1" parent="1" source="n4" target="n8"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="n33" style="endArrow=none;html=1;edgeStyle=none;" edge="1" parent="1" source="n4" target="n21"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="n34" style="endArrow=none;html=1;edgeStyle=none;" edge="1" parent="1" source="n4" target="n22"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="n35" style="endArrow=none;html=1;edgeStyle=none;" edge="1" parent="1" source="n5" target="n8"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="n36" style="endArrow=none;html=1;edgeStyle=none;" edge="1" parent="1" source="n5" target="n23"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="n37" style="endArrow=none;html=1;edgeStyle=none;" edge="1" parent="1" source="n6" target="n18"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="n38" style="endArrow=none;html=1;edgeStyle=none;" edge="1" parent="1" source="n7" target="n20"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="n39" value="«extend»" style="endArrow=open;endFill=0;dashed=1;html=1;fontSize=10;" edge="1" parent="1" source="n9" target="n8"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="n40" value="«extend»" style="endArrow=open;endFill=0;dashed=1;html=1;fontSize=10;" edge="1" parent="1" source="n16" target="n17"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="n41" value="«include»" style="endArrow=open;endFill=0;dashed=1;html=1;fontSize=10;" edge="1" parent="1" source="n16" target="n18"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="n42" value="«include»" style="endArrow=open;endFill=0;dashed=1;html=1;fontSize=10;" edge="1" parent="1" source="n16" target="n19"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="n43" value="«include»" style="endArrow=open;endFill=0;dashed=1;html=1;fontSize=10;" edge="1" parent="1" source="n16" target="n20"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="n44" value="«extend»" style="endArrow=open;endFill=0;dashed=1;html=1;fontSize=10;" edge="1" parent="1" source="n11" target="n14"><mxGeometry relative="1" as="geometry"/></mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
