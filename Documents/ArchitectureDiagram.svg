@@ -1,0 +1,133 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1390" viewBox="0 0 1600 1390" role="img" aria-labelledby="title desc"><title id="title">Online Bookstore proposed logical architecture</title><desc id="desc">Browser interfaces connect through server security controls to logical application modules, shared SQL persistence, background retry processing and external payment, notification and logistics providers. See Architecture.md for evidence and decisions.</desc><rect width="1600" height="1390" fill="#f5f8fc"/>
+<text x="40" y="58" font-family="Arial,sans-serif" font-size="34" font-weight="700" fill="#193a5a">ONLINE BOOKSTORE</text>
+<text x="40" y="90" font-family="Arial,sans-serif" font-size="20" font-weight="400" fill="#193a5a">Proposed logical architecture derived from repository requirements</text>
+<text x="1120" y="50" font-family="Arial,sans-serif" font-size="20" font-weight="700" fill="#00858e">REQUIREMENTS REVIEW</text>
+<text x="1120" y="75" font-family="Arial,sans-serif" font-size="16" font-weight="400" fill="#193a5a">No application code in reviewed snapshot</text>
+<rect x="40" y="115" width="330" height="90" rx="9" fill="#e9f1fc" stroke="#a9c2da" stroke-width="2"/>
+<text x="56" y="148" font-family="Arial,sans-serif" font-size="21" font-weight="700" fill="#193a5a">Buyer / Guest</text>
+<text x="56" y="177" font-family="Arial,sans-serif" font-size="18" font-weight="400" fill="#4d6880">Browse and manage cart; log in to buy</text>
+<rect x="400" y="115" width="330" height="90" rx="9" fill="#e9f1fc" stroke="#a9c2da" stroke-width="2"/>
+<text x="416" y="148" font-family="Arial,sans-serif" font-size="21" font-weight="700" fill="#193a5a">Seller</text>
+<text x="416" y="177" font-family="Arial,sans-serif" font-size="18" font-weight="400" fill="#4d6880">Own listings and order fulfilment</text>
+<rect x="760" y="115" width="330" height="90" rx="9" fill="#e9f1fc" stroke="#a9c2da" stroke-width="2"/>
+<text x="776" y="148" font-family="Arial,sans-serif" font-size="21" font-weight="700" fill="#193a5a">Admin</text>
+<text x="776" y="176" font-family="Arial,sans-serif" font-size="17" font-weight="400" fill="#4d6880">Accounts, listings and review moderation</text>
+<polyline points="205,205 205,235" fill="none" stroke="#276bb0" stroke-width="3"/>
+<polygon points="205,235 200.21537912477646,225.09508187412055 209.78462087522354,225.09508187412055" fill="#276bb0"/>
+<polyline points="565,205 565,235" fill="none" stroke="#276bb0" stroke-width="3"/>
+<polygon points="565,235 560.2153791247765,225.09508187412055 569.7846208752235,225.09508187412055" fill="#276bb0"/>
+<polyline points="925,205 925,235" fill="none" stroke="#276bb0" stroke-width="3"/>
+<polygon points="925,235 920.2153791247765,225.09508187412055 929.7846208752235,225.09508187412055" fill="#276bb0"/>
+<rect x="40" y="235" width="1050" height="94" rx="9" fill="#ffffff" stroke="#a9c2da" stroke-width="2"/>
+<text x="56" y="268" font-family="Arial,sans-serif" font-size="21" font-weight="700" fill="#193a5a">Presentation layer | Responsive browser interface</text>
+<text x="56" y="297" font-family="Arial,sans-serif" font-size="18" font-weight="400" fill="#4d6880">Buyer storefront / Seller dashboard / Admin console</text>
+<text x="56" y="322" font-family="Arial,sans-serif" font-size="18" font-weight="400" fill="#4d6880">Framework not selected; gateway-hosted card entry is a proposed integration choice</text>
+<polyline points="565,329 565,365" fill="none" stroke="#276bb0" stroke-width="3"/>
+<polygon points="565,365 560.2153791247765,355.0950818741206 569.7846208752235,355.0950818741206" fill="#276bb0"/>
+<text x="590" y="352" font-family="Arial,sans-serif" font-size="15" font-weight="400" fill="#276bb0">HTTPS / TLS 1.2+</text>
+<rect x="40" y="365" width="1050" height="108" rx="9" fill="#e4f3f1" stroke="#a9c2da" stroke-width="2"/>
+<text x="56" y="398" font-family="Arial,sans-serif" font-size="21" font-weight="700" fill="#193a5a">Server request handling and security controls</text>
+<text x="56" y="427" font-family="Arial,sans-serif" font-size="18" font-weight="400" fill="#4d6880">Session validation | Role and ownership checks | Input validation | CSRF protection | Rate limits</text>
+<text x="56" y="452" font-family="Arial,sans-serif" font-size="18" font-weight="400" fill="#4d6880">Password hashing and admin MFA | Safe output encoding | Generic errors | Security audit events</text>
+<polyline points="565,473 565,515" fill="none" stroke="#276bb0" stroke-width="3"/>
+<polygon points="565,515 560.2153791247765,505.0950818741206 569.7846208752235,505.0950818741206" fill="#276bb0"/>
+<rect x="24" y="515" width="1082" height="370" rx="9" fill="#edf4fd" stroke="#a9c2da" stroke-width="2"/>
+<text x="40" y="548" font-family="Arial,sans-serif" font-size="21" font-weight="700" fill="#193a5a">Application layer | Logical modules</text>
+<text x="40" y="577" font-family="Arial,sans-serif" font-size="18" font-weight="400" fill="#4d6880"></text>
+<rect x="40" y="570" width="330" height="90" rx="9" fill="#ffffff" stroke="#a9c2da" stroke-width="2"/>
+<text x="56" y="603" font-family="Arial,sans-serif" font-size="21" font-weight="700" fill="#193a5a">Identity and accounts</text>
+<text x="56" y="631" font-family="Arial,sans-serif" font-size="17" font-weight="400" fill="#4d6880">Registration, login, reset, sessions</text>
+<text x="56" y="656" font-family="Arial,sans-serif" font-size="17" font-weight="400" fill="#4d6880">Admin second factor | FR-1, 14</text>
+<rect x="400" y="570" width="330" height="90" rx="9" fill="#ffffff" stroke="#a9c2da" stroke-width="2"/>
+<text x="416" y="603" font-family="Arial,sans-serif" font-size="21" font-weight="700" fill="#193a5a">Checkout and orders</text>
+<text x="416" y="631" font-family="Arial,sans-serif" font-size="17" font-weight="400" fill="#4d6880">Server totals, coupons, stock protection</text>
+<text x="416" y="656" font-family="Arial,sans-serif" font-size="17" font-weight="400" fill="#4d6880">Verified payment -&gt; order | FR-5, 11</text>
+<rect x="760" y="570" width="330" height="90" rx="9" fill="#ffffff" stroke="#a9c2da" stroke-width="2"/>
+<text x="776" y="603" font-family="Arial,sans-serif" font-size="21" font-weight="700" fill="#193a5a">Payment integration</text>
+<text x="776" y="631" font-family="Arial,sans-serif" font-size="17" font-weight="400" fill="#4d6880">Initiate, verify, reconcile; refunds</text>
+<text x="776" y="656" font-family="Arial,sans-serif" font-size="17" font-weight="400" fill="#4d6880">Persist reference and outcome | UC9</text>
+<rect x="40" y="680" width="330" height="90" rx="9" fill="#ffffff" stroke="#a9c2da" stroke-width="2"/>
+<text x="56" y="713" font-family="Arial,sans-serif" font-size="21" font-weight="700" fill="#193a5a">Catalogue and inventory</text>
+<text x="56" y="741" font-family="Arial,sans-serif" font-size="17" font-weight="400" fill="#4d6880">Search, details, seller-owned listings</text>
+<text x="56" y="766" font-family="Arial,sans-serif" font-size="17" font-weight="400" fill="#4d6880">Stock, approval visibility | FR-2, 3, 7</text>
+<rect x="400" y="680" width="330" height="90" rx="9" fill="#ffffff" stroke="#a9c2da" stroke-width="2"/>
+<text x="416" y="713" font-family="Arial,sans-serif" font-size="21" font-weight="700" fill="#193a5a">Ratings and reviews</text>
+<text x="416" y="741" font-family="Arial,sans-serif" font-size="17" font-weight="400" fill="#4d6880">Delivered purchase; content filter</text>
+<text x="416" y="766" font-family="Arial,sans-serif" font-size="17" font-weight="400" fill="#4d6880">Held reviews / ratings | FR-10</text>
+<rect x="760" y="680" width="330" height="90" rx="9" fill="#ffffff" stroke="#a9c2da" stroke-width="2"/>
+<text x="776" y="713" font-family="Arial,sans-serif" font-size="21" font-weight="700" fill="#193a5a">Invoices and notifications</text>
+<text x="776" y="741" font-family="Arial,sans-serif" font-size="17" font-weight="400" fill="#4d6880">Itemised receipts; email / SMS / OTP</text>
+<text x="776" y="766" font-family="Arial,sans-serif" font-size="17" font-weight="400" fill="#4d6880">Retry failed work | FR-6, 13</text>
+<rect x="40" y="790" width="330" height="76" rx="9" fill="#ffffff" stroke="#a9c2da" stroke-width="2"/>
+<text x="56" y="823" font-family="Arial,sans-serif" font-size="21" font-weight="700" fill="#193a5a">Cart and wishlist</text>
+<text x="56" y="851" font-family="Arial,sans-serif" font-size="17" font-weight="400" fill="#4d6880">Seller-specific items | FR-4, 15</text>
+<rect x="400" y="790" width="330" height="76" rx="9" fill="#ffffff" stroke="#a9c2da" stroke-width="2"/>
+<text x="416" y="823" font-family="Arial,sans-serif" font-size="21" font-weight="700" fill="#193a5a">Admin and moderation</text>
+<text x="416" y="851" font-family="Arial,sans-serif" font-size="17" font-weight="400" fill="#4d6880">Approve / suspend / remove | FR-12</text>
+<rect x="760" y="790" width="330" height="76" rx="9" fill="#ffffff" stroke="#a9c2da" stroke-width="2"/>
+<text x="776" y="823" font-family="Arial,sans-serif" font-size="21" font-weight="700" fill="#193a5a">Fulfilment and tracking</text>
+<text x="776" y="851" font-family="Arial,sans-serif" font-size="17" font-weight="400" fill="#4d6880">Own lines, status history | FR-8, 9</text>
+<polyline points="730,615 760,615" fill="none" stroke="#276bb0" stroke-width="3"/>
+<polygon points="760,615 750.0950818741205,619.7846208752235 750.0950818741205,610.2153791247765" fill="#276bb0"/>
+<text x="1170" y="532" font-family="Arial,sans-serif" font-size="18" font-weight="700" fill="#00858e">EXTERNAL SYSTEMS</text>
+<rect x="1170" y="570" width="390" height="90" rx="9" fill="#e4f3f1" stroke="#a9c2da" stroke-width="2"/>
+<text x="1186" y="603" font-family="Arial,sans-serif" font-size="21" font-weight="700" fill="#193a5a">Payment gateway</text>
+<text x="1186" y="631" font-family="Arial,sans-serif" font-size="17" font-weight="400" fill="#4d6880">Direct card entry; authorise / capture</text>
+<text x="1186" y="656" font-family="Arial,sans-serif" font-size="17" font-weight="400" fill="#4d6880">Verified result and refund operations</text>
+<rect x="1170" y="680" width="390" height="90" rx="9" fill="#e4f3f1" stroke="#a9c2da" stroke-width="2"/>
+<text x="1186" y="713" font-family="Arial,sans-serif" font-size="21" font-weight="700" fill="#193a5a">Email / notification provider</text>
+<text x="1186" y="741" font-family="Arial,sans-serif" font-size="17" font-weight="400" fill="#4d6880">Order and status messages</text>
+<text x="1186" y="766" font-family="Arial,sans-serif" font-size="17" font-weight="400" fill="#4d6880">Reset OTP / link; admin second factor</text>
+<rect x="1170" y="790" width="390" height="76" rx="9" fill="#e4f3f1" stroke="#a9c2da" stroke-width="2"/>
+<text x="1186" y="823" font-family="Arial,sans-serif" font-size="21" font-weight="700" fill="#193a5a">Shipping / logistics provider</text>
+<text x="1186" y="851" font-family="Arial,sans-serif" font-size="17" font-weight="400" fill="#4d6880">Tracking API + inbound status webhook</text>
+<polyline points="1090,615 1170,615" fill="none" stroke="#276bb0" stroke-width="3"/>
+<polygon points="1170,615 1160.0950818741205,619.7846208752235 1160.0950818741205,610.2153791247765" fill="#276bb0"/>
+<polygon points="1090,615 1099.9049181258795,610.2153791247765 1099.9049181258795,619.7846208752235" fill="#276bb0"/>
+<polyline points="1090,725 1170,725" fill="none" stroke="#276bb0" stroke-width="3"/>
+<polygon points="1170,725 1160.0950818741205,729.7846208752235 1160.0950818741205,720.2153791247765" fill="#276bb0"/>
+<polygon points="1090,725 1099.9049181258795,720.2153791247765 1099.9049181258795,729.7846208752235" fill="#276bb0"/>
+<polyline points="1090,828 1170,828" fill="none" stroke="#276bb0" stroke-width="3"/>
+<polygon points="1170,828 1160.0950818741205,832.7846208752235 1160.0950818741205,823.2153791247765" fill="#276bb0"/>
+<polygon points="1090,828 1099.9049181258795,823.2153791247765 1099.9049181258795,832.7846208752235" fill="#276bb0"/>
+<text x="1100" y="604" font-family="Arial,sans-serif" font-size="14" font-weight="400" fill="#193a5a">TLS API</text>
+<text x="1100" y="714" font-family="Arial,sans-serif" font-size="14" font-weight="400" fill="#193a5a">TLS API</text>
+<text x="1100" y="817" font-family="Arial,sans-serif" font-size="14" font-weight="400" fill="#193a5a">TLS API</text>
+<polyline points="1000,284 1365,284 1365,570" fill="none" stroke="#276bb0" stroke-width="3"/>
+<polygon points="1365,570 1360.2153791247765,560.0950818741205 1369.7846208752235,560.0950818741205" fill="#276bb0"/>
+<text x="1120" y="313" font-family="Arial,sans-serif" font-size="15" font-weight="400" fill="#276bb0">Card details to gateway over TLS</text>
+<text x="1122" y="345" font-family="Arial,sans-serif" font-size="15" font-weight="400" fill="#193a5a">Never stored by bookstore (SEC-21)</text>
+<polyline points="565,885 565,935" fill="none" stroke="#276bb0" stroke-width="3"/>
+<polygon points="565,935 560.2153791247765,925.0950818741205 569.7846208752235,925.0950818741205" fill="#276bb0"/>
+<rect x="40" y="935" width="1050" height="88" rx="9" fill="#e4f3f1" stroke="#a9c2da" stroke-width="2"/>
+<text x="56" y="968" font-family="Arial,sans-serif" font-size="21" font-weight="700" fill="#193a5a">Shared data access | Parameterised SQL and transaction boundaries</text>
+<text x="56" y="997" font-family="Arial,sans-serif" font-size="18" font-weight="400" fill="#4d6880">Atomic order / stock / coupon updates; ownership-scoped queries; preserve order history</text>
+<polyline points="565,1023 565,1060" fill="none" stroke="#276bb0" stroke-width="3"/>
+<polygon points="565,1060 560.2153791247765,1050.0950818741205 569.7846208752235,1050.0950818741205" fill="#276bb0"/>
+<rect x="40" y="1060" width="1050" height="123" rx="9" fill="#e9f1fc" stroke="#a9c2da" stroke-width="2"/>
+<text x="56" y="1093" font-family="Arial,sans-serif" font-size="21" font-weight="700" fill="#193a5a">SQL database | Product not selected</text>
+<text x="56" y="1121" font-family="Arial,sans-serif" font-size="17" font-weight="400" fill="#4d6880">Accounts, roles, shared sessions, reset tokens | Books, seller listings, inventory, reservations*</text>
+<text x="56" y="1146" font-family="Arial,sans-serif" font-size="17" font-weight="400" fill="#4d6880">Carts, wishlists, coupons | Orders and seller-specific lines, payment attempts*, status history</text>
+<text x="56" y="1171" font-family="Arial,sans-serif" font-size="17" font-weight="400" fill="#4d6880">Reviews, invoice records, durable retry work* | Encrypted personal data; salted password hashes</text>
+<rect x="1170" y="935" width="390" height="147" rx="9" fill="#e4f3f1" stroke="#a9c2da" stroke-width="2"/>
+<text x="1186" y="968" font-family="Arial,sans-serif" font-size="21" font-weight="700" fill="#193a5a">Background retry processor*</text>
+<text x="1186" y="996" font-family="Arial,sans-serif" font-size="17" font-weight="400" fill="#4d6880">Durable SQL jobs; safe repeated delivery</text>
+<text x="1186" y="1021" font-family="Arial,sans-serif" font-size="17" font-weight="400" fill="#4d6880">Invoice generation / notification retries</text>
+<text x="1186" y="1046" font-family="Arial,sans-serif" font-size="17" font-weight="400" fill="#4d6880">Uses application modules + data access</text>
+<text x="1186" y="1071" font-family="Arial,sans-serif" font-size="17" font-weight="400" fill="#4d6880">No separate broker product assumed</text>
+<polyline points="1170,1000 1138,1000 1138,980 1090,980" fill="none" stroke="#276bb0" stroke-width="3"/>
+<polygon points="1090,980 1099.9049181258795,975.2153791247765 1099.9049181258795,984.7846208752235" fill="#276bb0"/>
+<polygon points="1170,1000 1160.0950818741205,1004.7846208752235 1160.0950818741205,995.2153791247765" fill="#276bb0"/>
+<rect x="1170" y="1090" width="390" height="175" rx="9" fill="#ffffff" stroke="#a9c2da" stroke-width="2"/>
+<text x="1186" y="1123" font-family="Arial,sans-serif" font-size="21" font-weight="700" fill="#193a5a">Operational controls</text>
+<text x="1186" y="1151" font-family="Arial,sans-serif" font-size="17" font-weight="400" fill="#4d6880">Protected audit logs; encrypted backups</text>
+<text x="1186" y="1176" font-family="Arial,sans-serif" font-size="17" font-weight="400" fill="#4d6880">Secrets outside source; restricted access</text>
+<text x="1186" y="1201" font-family="Arial,sans-serif" font-size="17" font-weight="400" fill="#4d6880">Monitoring, health checks and restore tests*</text>
+<text x="1186" y="1226" font-family="Arial,sans-serif" font-size="17" font-weight="400" fill="#4d6880">Privacy correction / deletion workflow</text>
+<text x="1186" y="1251" font-family="Arial,sans-serif" font-size="17" font-weight="400" fill="#4d6880">Respect legal order / invoice retention</text>
+<text x="40" y="1229" font-family="Arial,sans-serif" font-size="19" font-weight="700" fill="#193a5a">DESIGN AND DEPLOYMENT NOTES</text>
+<text x="40" y="1260" font-family="Arial,sans-serif" font-size="18" font-weight="400" fill="#193a5a">* Proposed design additions: reservations, payment attempts, durable jobs and retry processing.</text>
+<text x="40" y="1288" font-family="Arial,sans-serif" font-size="18" font-weight="400" fill="#193a5a">Scale application instances with shared sessions and coordinated SQL updates; routing / hosting remain to be selected.</text>
+<text x="40" y="1315" font-family="Arial,sans-serif" font-size="17" font-weight="400" fill="#193a5a">Module grouping is proposed. All module persistence uses shared data access. Arrows show communication, not execution order.</text>
+<text x="40" y="1361" font-family="Arial,sans-serif" font-size="16" font-weight="400" fill="#4d6880">Reviewed main @ 6bffd7fbf569 | 15 Oct 2026 | Evidence, conflicts and payment sequence: Architecture.md</text>
+</svg>
