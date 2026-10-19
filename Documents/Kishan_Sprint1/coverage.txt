@@ -1,0 +1,34 @@
+Name                          Stmts   Miss  Cover   Missing
+-----------------------------------------------------------
+accounts/__init__.py              0      0   100%
+accounts/admin.py                 1      0   100%
+accounts/apps.py                  3      0   100%
+accounts/models.py               27      0   100%
+accounts/views.py                 1      1     0%   1
+bookstore/__init__.py             0      0   100%
+bookstore/local_settings.py       7      0   100%
+bookstore/settings.py            25      0   100%
+bookstore/urls.py                 8      1    88%   10
+cart/__init__.py                  0      0   100%
+cart/admin.py                     1      0   100%
+cart/apps.py                      3      0   100%
+cart/models.py                   11      0   100%
+cart/views.py                     1      1     0%   1
+catalog/__init__.py               0      0   100%
+catalog/admin.py                 11      0   100%
+catalog/apps.py                   3      0   100%
+catalog/forms.py                 63      1    98%   52
+catalog/models.py                36      0   100%
+catalog/views.py                 52      0   100%
+orders/__init__.py                0      0   100%
+orders/admin.py                   1      0   100%
+orders/apps.py                    3      0   100%
+orders/models.py                 18      0   100%
+orders/views.py                   1      1     0%   1
+reviews/__init__.py               0      0   100%
+reviews/admin.py                  1      0   100%
+reviews/apps.py                   3      0   100%
+reviews/models.py                11      0   100%
+reviews/views.py                  1      1     0%   1
+-----------------------------------------------------------
+TOTAL                           292      6    98%

@@ -140,3 +140,7 @@ MAILERS = {
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 STATICFILES_DIRS = [BASE_DIR / "static"]
+
+LOGIN_URL = "/accounts/login/"  # Login/logout is teammate issue #2.
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
