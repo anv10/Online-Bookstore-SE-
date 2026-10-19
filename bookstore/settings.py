@@ -128,6 +128,8 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
 
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
