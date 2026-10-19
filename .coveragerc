@@ -1,0 +1,11 @@
+[run]
+source = .
+omit =
+    */migrations/*
+    manage.py
+    bookstore/wsgi.py
+    bookstore/asgi.py
+
+[report]
+fail_under = 70
+show_missing = True

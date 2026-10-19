@@ -1,2 +1,9 @@
 .DS_Store
 guide.pdf
+.env
+__pycache__/
+*.pyc
+.coverage
+htmlcov/
+venv/
+.venv/
