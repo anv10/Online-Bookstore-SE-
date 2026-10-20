@@ -49,9 +49,9 @@ AUTH_USER_MODEL = "accounts.User"
 
 AUTHENTICATION_BACKENDS = ["accounts.backends.EmailOrPhoneBackend"]
 
-LOGIN_URL = "accounts:login"
-LOGIN_REDIRECT_URL = "accounts:profile"
-LOGOUT_REDIRECT_URL = "accounts:login"
+LOGIN_URL = "login"
+LOGIN_REDIRECT_URL = "profile"
+LOGOUT_REDIRECT_URL = "login"
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",

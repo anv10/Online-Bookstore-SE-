@@ -7,8 +7,8 @@ from accounts.models import User
 class LoginTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user("reader@example.com", "s3cret-pass", phone="+15550100")
-        self.login_url = reverse("accounts:login")
-        self.profile_url = reverse("accounts:profile")
+        self.login_url = reverse("login")
+        self.profile_url = reverse("profile")
 
     def test_login_page_renders(self):
         response = self.client.get(self.login_url)
@@ -65,21 +65,31 @@ class LogoutAndProtectionTests(TestCase):
 
     def test_logout_ends_session(self):
         self.client.login(username="reader@example.com", password="s3cret-pass")
-        response = self.client.post(reverse("accounts:logout"))
-        self.assertRedirects(response, reverse("accounts:login"))
+        response = self.client.post(reverse("logout"))
+        self.assertRedirects(response, reverse("login"))
         self.assertNotIn("_auth_user_id", self.client.session)
 
     def test_protected_page_redirects_to_login_when_anonymous(self):
-        response = self.client.get(reverse("accounts:profile"))
-        expected = f"{reverse('accounts:login')}?next={reverse('accounts:profile')}"
+        response = self.client.get(reverse("profile"))
+        expected = f"{reverse('login')}?next={reverse('profile')}"
         self.assertRedirects(response, expected)
 
     def test_protected_page_available_when_logged_in(self):
         self.client.login(username="reader@example.com", password="s3cret-pass")
-        response = self.client.get(reverse("accounts:profile"))
+        response = self.client.get(reverse("profile"))
         self.assertContains(response, "reader@example.com")
 
     def test_login_honours_next_parameter(self):
-        url = f"{reverse('accounts:login')}?next={reverse('accounts:profile')}"
+        url = f"{reverse('login')}?next={reverse('profile')}"
         response = self.client.post(url, {"username": "reader@example.com", "password": "s3cret-pass"})
-        self.assertRedirects(response, reverse("accounts:profile"))
+        self.assertRedirects(response, reverse("profile"))
+
+
+class PhoneOnlyUserTests(TestCase):
+    def test_phone_only_user_can_log_in_and_see_profile(self):
+        User.objects.create_user(password="s3cret-pass", phone="+15550222")
+        response = self.client.post(reverse("login"), {"username": "+15550222", "password": "s3cret-pass"})
+        self.assertRedirects(response, reverse("profile"))
+        page = self.client.get(reverse("profile"))
+        self.assertContains(page, "+15550222")
+        self.assertNotContains(page, "None")
