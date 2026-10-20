@@ -18,10 +18,11 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 
-from catalog.views import catalog
+from catalog.views import book_detail, catalog
 
 urlpatterns = [
     path("", catalog, name="catalog"),
+    path("books/<int:pk>/", book_detail, name="book_detail"),
     path("admin/", admin.site.urls),
     path("accounts/", include("accounts.urls")),
 ]
