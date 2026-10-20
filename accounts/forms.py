@@ -3,6 +3,7 @@ import re
 from django.contrib.auth import password_validation
 from django.core.exceptions import ValidationError
 from django import forms
+from django.db import IntegrityError, transaction
 
 from .models import User
 
@@ -11,8 +12,8 @@ PHONE_RE = re.compile(r"^\+?\d{7,15}$")
 
 class RegistrationForm(forms.Form):
     identifier = forms.CharField(label="Email or phone number", max_length=254)
-    password = forms.CharField(widget=forms.PasswordInput)
-    confirm_password = forms.CharField(widget=forms.PasswordInput)
+    password = forms.CharField(widget=forms.PasswordInput, strip=False)
+    confirm_password = forms.CharField(widget=forms.PasswordInput, strip=False)
 
     def clean_identifier(self):
         value = self.cleaned_data["identifier"].strip()
@@ -40,6 +41,8 @@ class RegistrationForm(forms.Form):
             temp = User(**{getattr(self, "kind", "email"): data.get("identifier")})
             try:
                 password_validation.validate_password(password, temp)
+                if not (re.search(r"[A-Za-z]", password) and re.search(r"\d", password)):
+                    raise ValidationError("Password must contain at least one letter and one digit.")
             except ValidationError as e:
                 self.add_error("password", e)
         return data
@@ -47,6 +50,12 @@ class RegistrationForm(forms.Form):
     def save(self):
         ident = self.cleaned_data["identifier"]
         password = self.cleaned_data["password"]
-        if self.kind == "email":
-            return User.objects.create_user(email=ident, password=password)
-        return User.objects.create_user(password=password, phone=ident)
+        try:
+            with transaction.atomic():
+                if self.kind == "email":
+                    return User.objects.create_user(email=ident, password=password)
+                return User.objects.create_user(password=password, phone=ident)
+        except IntegrityError:
+            label = "email" if self.kind == "email" else "phone number"
+            self.add_error("identifier", f"An account with this {label} already exists.")
+            return None

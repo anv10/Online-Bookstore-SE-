@@ -53,3 +53,35 @@ class RegisterTests(TestCase):
     def test_password_mismatch(self):
         r = self.post("m@example.com", confirm="Other-pass-123")
         self.assertContains(r, "do not match")
+
+    def test_password_needs_letter_and_digit(self):
+        for pw in ("ZyqvMtrLpx", "!@#$%^&*()"):
+            r = self.post("pol@example.com", pw)
+            self.assertEqual(r.status_code, 200)
+        self.assertContains(self.post("pol@example.com", "ZyqvMtrLpx"), "letter and one digit")
+        self.assertEqual(User.objects.count(), 0)
+
+    def test_password_whitespace_preserved(self):
+        pw = "  Tr1cky-horse-9  "
+        self.assertEqual(self.post("sp@example.com", pw).status_code, 302)
+        user = User.objects.get(email="sp@example.com")
+        self.assertTrue(user.check_password(pw))
+        self.assertFalse(user.check_password(pw.strip()))
+        self.assertContains(self.post("sp2@example.com", pw, pw.strip()), "do not match")
+
+    def test_duplicate_race_returns_form_error(self):
+        from unittest import mock
+
+        from accounts.forms import RegistrationForm
+
+        for ident, label in (("race@example.com", "email"), ("+15550009999", "phone number")):
+            form = RegistrationForm(
+                {"identifier": ident, "password": "Tr1cky-horse-9", "confirm_password": "Tr1cky-horse-9"}
+            )
+            self.assertTrue(form.is_valid())
+            if label == "email":
+                User.objects.create_user(email=ident, password="x1y2z3w4v5")
+            else:
+                User.objects.create_user(password="x1y2z3w4v5", phone=ident)
+            self.assertIsNone(form.save())
+            self.assertIn(label, form.errors["identifier"][0])
