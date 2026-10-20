@@ -10,7 +10,7 @@ class UserModelTests(TestCase):
         self.assertTrue(user.check_password("s3cret-pass"))
         self.assertEqual(str(user), "a@example.com")
 
-    def test_email_required(self):
+    def test_email_or_phone_required(self):
         with self.assertRaises(ValueError):
             User.objects.create_user("", "x")
 
