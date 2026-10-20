@@ -1,4 +1,9 @@
+from pathlib import Path
+
 from django import forms
+from PIL import Image, UnidentifiedImageError
+
+from .models import Book
 
 class SearchForm(forms.Form):
     q = forms.CharField(required=False, max_length=255, label="Title, author or ISBN")
@@ -18,13 +23,6 @@ class SearchForm(forms.Form):
         if self.is_bound and not any([data.get("q"), data.get("genre"), low is not None, high is not None]) and "q" in self.data:
             raise forms.ValidationError("Enter a search term or choose a filter.")
         return data
-
-
-
-
-from pathlib import Path
-from PIL import Image, UnidentifiedImageError
-from .models import Book
 
 
 class MultipleFileInput(forms.ClearableFileInput):
