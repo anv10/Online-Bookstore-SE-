@@ -1,6 +1,7 @@
 import re
 
 from django.contrib.auth import password_validation
+from django.contrib.auth.forms import AuthenticationForm
 from django.core.exceptions import ValidationError
 from django import forms
 from django.db import IntegrityError, transaction
@@ -59,3 +60,15 @@ class RegistrationForm(forms.Form):
             label = "email" if self.kind == "email" else "phone number"
             self.add_error("identifier", f"An account with this {label} already exists.")
             return None
+
+
+class LoginForm(AuthenticationForm):
+    error_messages = {
+        **AuthenticationForm.error_messages,
+        "invalid_login": "Invalid credentials. Please try again.",
+        "inactive": "Invalid credentials. Please try again.",
+    }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["username"].label = "Email or phone"
