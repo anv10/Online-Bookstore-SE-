@@ -2,6 +2,7 @@
 source = .
 omit =
     */migrations/*
+    */tests/*
     manage.py
     bookstore/wsgi.py
     bookstore/asgi.py
