@@ -10,6 +10,7 @@ from reviews.models import Review
 
 class BookDetailTests(TestCase):
     def setUp(self):
+        self.seller = User.objects.create_user("seller@example.com", "pw", full_name="Seller")
         self.book = Book.objects.create(
             title="Clean Code",
             author="Robert C. Martin",
@@ -17,6 +18,8 @@ class BookDetailTests(TestCase):
             description="A handbook of agile craftsmanship.",
             price=Decimal("799.00"),
             stock=4,
+            seller=self.seller,
+            status=Book.Status.APPROVED,
         )
 
     def get(self, book=None):
@@ -29,8 +32,11 @@ class BookDetailTests(TestCase):
             self.assertContains(response, text)
 
     def test_seller_and_condition_fall_back_when_not_set(self):
+        self.book.seller = None
+        self.book.save()
         response = self.get()
         self.assertContains(response, "Not specified")
+        self.assertContains(response, "New")
 
     def test_out_of_stock_is_marked_and_cannot_be_added(self):
         self.book.stock = 0
@@ -74,12 +80,16 @@ class BookDetailTests(TestCase):
         self.assertContains(response, "&lt;script&gt;")
 
     def test_unapproved_listing_is_hidden(self):
-        self.book.status = "pending"
-        self.assertEqual(getattr(self.book, "status"), "pending")
-        from unittest import mock
+        for status in (Book.Status.PENDING, Book.Status.SUSPENDED, Book.Status.REMOVED):
+            with self.subTest(status=status):
+                self.book.status = status
+                self.book.save()
+                self.assertEqual(self.get().status_code, 404)
 
-        with mock.patch("catalog.views.get_object_or_404", return_value=self.book):
-            self.assertEqual(self.get().status_code, 404)
+    def test_inactive_sellers_listing_is_hidden(self):
+        self.seller.is_active = False
+        self.seller.save()
+        self.assertEqual(self.get().status_code, 404)
 
     @override_settings(DEBUG=False)
     def test_unknown_book_shows_not_found_page(self):
@@ -89,4 +99,8 @@ class BookDetailTests(TestCase):
 
     def test_catalogue_links_to_detail_page(self):
         response = self.client.get(reverse("catalog"))
-        self.assertContains(response, reverse("book_detail", args=[self.book.pk]))
+        self.assertContains(response, reverse("book_detail", args=[self.book.pk]), count=2)
+
+    def test_filtered_catalogue_keeps_detail_links(self):
+        response = self.client.get(reverse("catalog"), {"q": "Clean", "min_price": "700", "max_price": "800"})
+        self.assertContains(response, reverse("book_detail", args=[self.book.pk]), count=2)
