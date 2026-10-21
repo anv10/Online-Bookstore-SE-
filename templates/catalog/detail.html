@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block content %}
+<a class="backlink" href="{% url 'catalog' %}">← Back to the collection</a>
+<section class="detail">
+  <div class="cover cover-green detail-cover">
+    <span class="cover-author">{{ book.author }}</span>
+    <strong>{{ book.title }}</strong>
+    <span class="cover-line"></span>
+    <small>{{ book.category|default:'A BOOK TO REMEMBER' }}</small>
+  </div>
+  <div>
+    <h1>{{ book.title }}</h1>
+    <p class="byline">by {{ book.author }}</p>
+    <p class="book-bottom"><strong>₹{{ book.price }}</strong></p>
+    <dl>
+      <dt>ISBN</dt><dd>{{ book.isbn }}</dd>
+      <dt>Availability</dt>
+      <dd>{% if book.stock %}In stock ({{ book.stock }} available){% else %}<span class="out">Out of stock</span>{% endif %}</dd>
+      <dt>Seller</dt><dd>{% if book.seller %}{{ book.seller.full_name|default:'Independent seller' }}{% else %}Not specified{% endif %}</dd>
+      <dt>Condition</dt><dd>{% if book.condition %}{{ book.get_condition_display }}{% else %}Not specified{% endif %}</dd>
+      <dt>Rating</dt>
+      <dd>{% if review_count %}{{ average_rating|floatformat:1 }} / 5 ({{ review_count }} review{{ review_count|pluralize }}){% else %}No ratings yet{% endif %}</dd>
+    </dl>
+    {% if book.description %}<p>{{ book.description }}</p>{% endif %}
+    {% if book.stock %}
+      <button type="button" class="button">Add to cart</button>
+    {% else %}
+      <button type="button" class="button" disabled>Out of stock</button>
+    {% endif %}
+  </div>
+</section>
+<section class="reviews" aria-label="Reviews">
+  <h2>Reviews</h2>
+  {% for review in reviews %}
+    <article>
+      <strong>{{ review.rating }} / 5</strong> · {{ review.user.full_name|default:'A reader' }}
+      {% if review.comment %}<p>{{ review.comment }}</p>{% endif %}
+    </article>
+  {% empty %}
+    <p class="muted">No reviews yet.</p>
+  {% endfor %}
+</section>
+{% endblock %}

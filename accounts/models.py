@@ -5,10 +5,10 @@ from django.db import models
 class UserManager(BaseUserManager):
     use_in_migrations = True
 
-    def create_user(self, email, password=None, **extra):
-        if not email:
-            raise ValueError("Email is required")
-        user = self.model(email=self.normalize_email(email), **extra)
+    def create_user(self, email=None, password=None, **extra):
+        if not email and not extra.get("phone"):
+            raise ValueError("Email or phone is required")
+        user = self.model(email=self.normalize_email(email) if email else None, **extra)
         user.set_password(password)
         user.save(using=self._db)
         return user
@@ -20,7 +20,7 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractBaseUser, PermissionsMixin):
-    email = models.EmailField(unique=True)
+    email = models.EmailField(unique=True, null=True, blank=True)
     phone = models.CharField(max_length=20, unique=True, null=True, blank=True)
     full_name = models.CharField(max_length=150, blank=True)
     is_active = models.BooleanField(default=True)
@@ -33,4 +33,4 @@ class User(AbstractBaseUser, PermissionsMixin):
     REQUIRED_FIELDS = []
 
     def __str__(self):
-        return self.email
+        return self.email or self.phone
