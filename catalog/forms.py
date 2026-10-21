@@ -67,6 +67,8 @@ class ListingForm(forms.ModelForm):
 
     def clean_isbn(self):
         value = self.cleaned_data["isbn"].replace("-", "").replace(" ", "")
+        if not value.isascii():
+            raise forms.ValidationError("Enter a valid ISBN-10 or ISBN-13, including its check digit.")
         valid = False
         if len(value) == 13 and value.isdigit():
             valid = sum(int(c) * (1 if i % 2 == 0 else 3) for i, c in enumerate(value)) % 10 == 0
