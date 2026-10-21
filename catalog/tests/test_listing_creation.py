@@ -86,3 +86,11 @@ class ListingCreationTests(TestCase):
             self.assertNotContains(self.client.get(reverse("catalog")),"Visible")
         own.status="approved";own.save();self.seller.is_active=False;self.seller.save()
         self.assertNotContains(self.client.get(reverse("catalog")),"Visible")
+
+    def test_non_ascii_isbn_returns_validation_error(self):
+        for isbn in ("²" * 13, "²" * 9 + "X", "٩" * 13):
+            with self.subTest(isbn=isbn):
+                response = self.client.post(reverse("listing_add"), self.data(isbn=isbn))
+                self.assertEqual(response.status_code, 200)
+                self.assertFormError(response.context["form"], "isbn", "Enter a valid ISBN-10 or ISBN-13, including its check digit.")
+        self.assertFalse(Book.objects.exists())
