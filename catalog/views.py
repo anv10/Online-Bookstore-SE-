@@ -1,6 +1,7 @@
 from django.core.paginator import Paginator
-from django.db.models import Q
-from django.shortcuts import render
+from django.db.models import Avg, Count, Q
+from django.http import Http404
+from django.shortcuts import get_object_or_404, render
 from .forms import SearchForm
 from .models import Book, BookImage
 from .forms import ListingForm
@@ -57,3 +58,18 @@ def seller_listings(request):
     if not request.user.has_perm("catalog.add_book"):
         raise PermissionDenied
     return render(request, "catalog/seller_listings.html", {"books": Book.objects.filter(seller=request.user).order_by("-created_at")})
+
+
+def book_detail(request, pk):
+    book = get_object_or_404(Book, pk=pk)
+    # Listings that are not approved (status arrives with the seller listing feature) stay hidden.
+    if book.status != Book.Status.APPROVED or (book.seller and not book.seller.is_active):
+        raise Http404("Book not found")
+    reviews = book.reviews.select_related("user").order_by("-created_at")
+    summary = reviews.aggregate(average=Avg("rating"), count=Count("pk"))
+    return render(
+        request,
+        "catalog/detail.html",
+        {"book": book, "reviews": reviews, "average_rating": summary["average"], "review_count": summary["count"]},
+    )
+

@@ -20,10 +20,11 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 
-from catalog.views import catalog, listing_add, seller_listings
+from catalog.views import book_detail, catalog, listing_add, seller_listings
 
 urlpatterns = [
     path("", catalog, name="catalog"),
+    path("books/<int:pk>/", book_detail, name="book_detail"),
     path("seller/new/", listing_add, name="listing_add"),
     path("seller/", seller_listings, name="seller_listings"),
     path("admin/", admin.site.urls),
