@@ -1,11 +1,13 @@
 from django.test import TestCase
 from django.urls import reverse
 from catalog.models import Book
+from accounts.models import User
 
 class SearchTests(TestCase):
     def setUp(self):
-        self.book=Book.objects.create(title="Clean Code",author="Robert C. Martin",isbn="9780132350884",category="Technology",price="799",stock=4)
-        Book.objects.create(title="The Hobbit",author="Tolkien",isbn="9780261103344",category="Fantasy",price="400",stock=2)
+        self.seller=User.objects.create_user("fixture@example.com","Fixture2026!")
+        self.book=Book.objects.create(seller=self.seller,status="approved",title="Clean Code",author="Robert C. Martin",isbn="9780132350884",category="Technology",price="799",stock=4)
+        Book.objects.create(seller=self.seller,status="approved",title="The Hobbit",author="Tolkien",isbn="9780261103344",category="Fantasy",price="400",stock=2)
 
     def test_search_title_author_and_exact_isbn(self):
         for query in ["clean", "MARTIN", self.book.isbn]:
@@ -21,7 +23,7 @@ class SearchTests(TestCase):
         self.assertTrue(self.client.get(reverse("catalog"),{"q":"x"*256}).context["form"].errors)
 
     def test_pagination_and_query_persistence(self):
-        for n in range(12):Book.objects.create(title=f"Clean title {n:02}",author="A",isbn=f"{n:013}",price=10)
+        for n in range(12):Book.objects.create(seller=self.seller,status="approved",title=f"Clean title {n:02}",author="A",isbn=f"{n:013}",price=10)
         r=self.client.get(reverse("catalog"),{"q":"Clean","page":"2"})
         self.assertEqual(len(r.context["page_obj"]),4)
         self.assertEqual(r.context["query"],"q=Clean")

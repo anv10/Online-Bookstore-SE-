@@ -7,10 +7,10 @@ from catalog.models import Book
 
 
 class BookModelTests(TestCase):
-    def test_isbn_unique(self):
-        Book.objects.create(title="A", author="X", isbn="9780000000001", price=Decimal("9.99"))
-        with self.assertRaises(IntegrityError), transaction.atomic():
-            Book.objects.create(title="B", author="Y", isbn="9780000000001", price=Decimal("5.00"))
+    def test_same_isbn_supports_multiple_listings(self):
+        Book.objects.create(title="A",author="X",isbn="9780132350884",price=10)
+        Book.objects.create(title="A",author="X",isbn="9780132350884",price=20)
+        self.assertEqual(Book.objects.count(),2)
 
     def test_str(self):
         self.assertEqual(str(Book(title="Dune")), "Dune")
