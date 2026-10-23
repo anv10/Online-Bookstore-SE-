@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block content %}
+<a class="backlink" href="{% url 'seller_listings' %}">← Your listings</a>
+<section class="editor">
+  <p class="eyebrow">SELLER STUDIO</p>
+  <h1>Edit “{{ book.title }}”.</h1>
+  <p>Current status: {{ book.get_status_display }}. Saving does not change it.</p>
+  <form class="panel" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button class="button">Save changes</button>
+  </form>
+</section>
+{% endblock %}

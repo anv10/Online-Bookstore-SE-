@@ -3,7 +3,7 @@ from pathlib import Path
 from django import forms
 from PIL import Image, UnidentifiedImageError
 
-from .models import Book
+from .models import Book, BookImage
 
 class SearchForm(forms.Form):
     q = forms.CharField(required=False, max_length=255, label="Title, author or ISBN")
@@ -78,3 +78,23 @@ class ListingForm(forms.ModelForm):
         if not valid:
             raise forms.ValidationError("Enter a valid ISBN-10 or ISBN-13, including its check digit.")
         return value
+
+
+class EditListingForm(ListingForm):
+    remove_images = forms.ModelMultipleChoiceField(
+        queryset=BookImage.objects.none(), required=False, widget=forms.CheckboxSelectMultiple, label="Remove images"
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["images"].label = "Add images (up to 5 PNG/JPEG files in total, 2 MB each)"
+        self.fields["remove_images"].queryset = self.instance.images.all()
+        self.fields["remove_images"].label_from_instance = lambda image: Path(image.image.name).name
+
+    def clean(self):
+        data = super().clean()
+        removed = data.get("remove_images")
+        kept = self.instance.images.count() - (len(removed) if removed else 0)
+        if kept + len(data.get("images") or []) > 5:
+            raise forms.ValidationError("A listing can have at most five images in total.")
+        return data
