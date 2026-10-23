@@ -4,12 +4,13 @@ from django.http import Http404
 from django.shortcuts import get_object_or_404, render
 from .forms import SearchForm
 from .models import Book, BookImage
-from .forms import ListingForm
+from .forms import EditListingForm, ListingForm
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.shortcuts import redirect
+from django.views.decorators.http import require_http_methods
 
 
 def catalog(request):
@@ -57,7 +58,44 @@ def listing_add(request):
 def seller_listings(request):
     if not request.user.has_perm("catalog.add_book"):
         raise PermissionDenied
-    return render(request, "catalog/seller_listings.html", {"books": Book.objects.filter(seller=request.user).order_by("-created_at")})
+    return render(request, "catalog/seller_listings.html", {"books": Book.objects.filter(seller=request.user).exclude(status=Book.Status.REMOVED).order_by("-created_at")})
+
+
+def _own_listing_or_404(request, pk):
+    """A seller's own, not yet removed listing. Anyone else's listing looks like it does not exist."""
+    if not request.user.has_perm("catalog.add_book"):
+        raise PermissionDenied
+    return get_object_or_404(Book.objects.exclude(status=Book.Status.REMOVED), pk=pk, seller=request.user)
+
+
+@login_required
+def listing_edit(request, pk):
+    book = _own_listing_or_404(request, pk)
+    form = EditListingForm(request.POST or None, request.FILES or None, instance=book)
+    if request.method == "POST" and form.is_valid():
+        with transaction.atomic():
+            book = form.save()
+            for image in form.cleaned_data["remove_images"]:
+                image.image.delete(save=False)
+                image.delete()
+            for upload in form.cleaned_data["images"]:
+                BookImage.objects.create(book=book, image=upload)
+        messages.success(request, "Listing updated.")
+        return redirect("seller_listings")
+    return render(request, "catalog/edit.html", {"form": form, "book": book})
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def listing_remove(request, pk):
+    book = _own_listing_or_404(request, pk)
+    if request.method == "POST":
+        # Soft delete: orders keep a reference to the book, so the row stays but is hidden everywhere.
+        book.status = Book.Status.REMOVED
+        book.save(update_fields=["status"])
+        messages.success(request, f"\"{book.title}\" was removed.")
+        return redirect("seller_listings")
+    return render(request, "catalog/confirm_remove.html", {"book": book})
 
 
 def book_detail(request, pk):

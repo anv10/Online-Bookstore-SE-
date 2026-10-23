@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block content %}
+<a class="backlink" href="{% url 'seller_listings' %}">← Your listings</a>
+<section class="editor">
+  <p class="eyebrow">SELLER STUDIO</p>
+  <h1>Remove “{{ book.title }}”?</h1>
+  <p>The listing will disappear from the catalogue and from search. This cannot be undone from here.</p>
+  <form class="panel" method="post">
+    {% csrf_token %}
+    <button class="button">Yes, remove this listing</button>
+    <a class="clear" href="{% url 'seller_listings' %}">Keep it</a>
+  </form>
+</section>
+{% endblock %}
