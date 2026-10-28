@@ -20,6 +20,7 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 
+from catalog import moderation
 from catalog.views import book_detail, catalog, listing_add, listing_edit, listing_remove, seller_listings
 
 urlpatterns = [
@@ -29,6 +30,9 @@ urlpatterns = [
     path("seller/", seller_listings, name="seller_listings"),
     path("seller/<int:pk>/edit/", listing_edit, name="listing_edit"),
     path("seller/<int:pk>/remove/", listing_remove, name="listing_remove"),
+    path("moderation/verify/", moderation.verify, name="moderation_verify"),
+    path("moderation/", moderation.queue, name="moderation_queue"),
+    path("moderation/<int:pk>/", moderation.decide, name="moderation_decide"),
     path("admin/", admin.site.urls),
     path("accounts/", include("accounts.urls")),
 ]
