@@ -3,7 +3,7 @@ from django.db.models import Avg, Count, Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404, render
 from .forms import SearchForm
-from .models import Book, BookImage
+from .models import Book, BookImage, ModerationEvent
 from .forms import EditListingForm, ListingForm
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -58,7 +58,7 @@ def listing_add(request):
 def seller_listings(request):
     if not request.user.has_perm("catalog.add_book"):
         raise PermissionDenied
-    return render(request, "catalog/seller_listings.html", {"books": Book.objects.filter(seller=request.user).exclude(status=Book.Status.REMOVED).order_by("-created_at")})
+    return render(request, "catalog/seller_listings.html", {"books": Book.objects.filter(seller=request.user).exclude(status=Book.Status.REMOVED).order_by("-created_at"), "decisions": ModerationEvent.objects.filter(book__seller=request.user).select_related("book")[:20]})
 
 
 def _own_listing_or_404(request, pk):
@@ -74,7 +74,9 @@ def listing_edit(request, pk):
     form = EditListingForm(request.POST or None, request.FILES or None, instance=book)
     if request.method == "POST" and form.is_valid():
         with transaction.atomic():
-            book = form.save()
+            book = form.save(commit=False)
+            # A concurrent seller edit must never restore a stale moderation status.
+            book.save(update_fields=form._meta.fields)
             for image in form.cleaned_data["remove_images"]:
                 image.image.delete(save=False)
                 image.delete()
