@@ -52,6 +52,10 @@ class HttpsSettingsTests(TestCase):
             return importlib.reload(project_settings)
 
     def tearDown(self):
+        for name in ("SECURE_SSL_REDIRECT", "SECURE_PROXY_SSL_HEADER", "SECURE_HSTS_SECONDS",
+                     "SECURE_HSTS_INCLUDE_SUBDOMAINS", "SESSION_COOKIE_SECURE", "CSRF_COOKIE_SECURE"):
+            if hasattr(project_settings, name):
+                delattr(project_settings, name)
         importlib.reload(project_settings)
 
     def test_https_settings_when_enabled(self):
@@ -62,8 +66,11 @@ class HttpsSettingsTests(TestCase):
         self.assertTrue(cfg.CSRF_COOKIE_SECURE)
 
     def test_https_settings_off_by_default(self):
+        for name in ("SECURE_SSL_REDIRECT", "SESSION_COOKIE_SECURE"):
+            if hasattr(project_settings, name):
+                delattr(project_settings, name)
         cfg = self._load("0")
-        self.assertFalse(hasattr(cfg, "SECURE_SSL_REDIRECT"))
+        self.assertFalse(getattr(cfg, "SECURE_SSL_REDIRECT", False))
 
     def test_secrets_come_from_environment(self):
         source = open(project_settings.__file__).read()

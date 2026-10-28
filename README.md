@@ -30,7 +30,7 @@ Software engineering course project.
 ## Security settings (NFR-6)
 
 - Set `DJANGO_FORCE_HTTPS=1` in production: Django redirects HTTP to HTTPS, sends HSTS and marks cookies secure. TLS 1.2+ itself is configured on the web server or proxy in front of Django, which must send `X-Forwarded-Proto`.
-- `Order.shipping_address` is encrypted at rest (Fernet). Set `FIELD_ENCRYPTION_KEY` to a key from `python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"`. If it is empty, a key is derived from `DJANGO_SECRET_KEY`.
+- `Order.shipping_address` is encrypted at rest (Fernet). Set `FIELD_ENCRYPTION_KEY` to a key from `python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"`. If it is empty, a key is derived from `DJANGO_SECRET_KEY`. Do not change this key (or rotate the secret key while it is derived) once data exists, or stored addresses can no longer be decrypted.
 - The secret key, database password and encryption key are read from environment variables only; `.env` is git-ignored.
 
 ## Tests
