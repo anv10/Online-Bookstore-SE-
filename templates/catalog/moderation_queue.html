@@ -1,0 +1,7 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Listing moderation</h1>
+<form method="get"><label for="status">Listing status</label><select id="status" name="status">{% for value,label in statuses %}<option value="{{ value }}" {% if value == selected_status %}selected{% endif %}>{{ label }}</option>{% endfor %}</select><button>Show listings</button></form>
+{% for book in page_obj %}<article><h2><a href="{% url 'moderation_decide' book.pk %}">{{ book.title }}</a></h2><p>{{ book.author }} · {{ book.seller|default:'Seller not assigned' }} · {{ book.get_status_display }}</p></article>{% empty %}<p>No listings with this status.</p>{% endfor %}
+<nav aria-label="Pagination">{% if page_obj.has_previous %}<a href="?status={{ selected_status }}&amp;page={{ page_obj.previous_page_number }}">Previous</a>{% endif %}<span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>{% if page_obj.has_next %}<a href="?status={{ selected_status }}&amp;page={{ page_obj.next_page_number }}">Next</a>{% endif %}</nav>
+{% endblock %}
