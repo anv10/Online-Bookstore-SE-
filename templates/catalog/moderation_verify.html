@@ -1,0 +1,7 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Verify admin access</h1>
+<p>A code will be sent to your account email. It expires in 10 minutes and can be used once.</p>
+<form method="post">{% csrf_token %}<button name="action" value="send">Send verification code</button></form>
+<form method="post">{% csrf_token %}{{ form.as_p }}<button name="action" value="verify">Verify code</button></form>
+{% endblock %}
