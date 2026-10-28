@@ -30,6 +30,7 @@ class EncryptedTextField(models.TextField):
             return None
         try:
             return _fernet().decrypt(value.encode()).decode()
-        except InvalidToken:
-            # rows written before encryption was added are still plain text
-            return value
+        except InvalidToken as exc:
+            raise ValueError(
+                "Could not decrypt a stored value: wrong FIELD_ENCRYPTION_KEY or damaged data."
+            ) from exc

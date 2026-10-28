@@ -4,7 +4,9 @@ from decimal import Decimal
 from unittest import mock
 
 from django.db import connection
-from django.test import TestCase
+from cryptography.fernet import Fernet
+from django.db.migrations.executor import MigrationExecutor
+from django.test import TestCase, TransactionTestCase, override_settings
 
 from accounts.models import User
 from bookstore import settings as project_settings
@@ -30,13 +32,33 @@ class EncryptionAtRestTests(TestCase):
         order.refresh_from_db()
         self.assertEqual(order.shipping_address, "1 Main St")
 
-    def test_plain_text_rows_from_before_encryption_still_load(self):
+    def _raw_set(self, order, value):
+        with connection.cursor() as cursor:
+            cursor.execute("UPDATE orders_order SET shipping_address = %s WHERE id = %s", [value, order.pk])
+
+    def test_plain_text_value_is_rejected(self):
         user = User.objects.create_user("p@example.com", "pw")
         order = Order.objects.create(user=user, total=Decimal("5"), shipping_address="x")
+        self._raw_set(order, "old plain")
+        with self.assertRaises(ValueError):
+            order.refresh_from_db()
+
+    def test_wrong_key_is_rejected(self):
+        user = User.objects.create_user("w@example.com", "pw")
+        order = Order.objects.create(user=user, total=Decimal("5"), shipping_address="1 Main St")
+        with override_settings(FIELD_ENCRYPTION_KEY=Fernet.generate_key().decode()):
+            with self.assertRaises(ValueError):
+                order.refresh_from_db()
+
+    def test_tampered_token_is_rejected(self):
+        user = User.objects.create_user("t@example.com", "pw")
+        order = Order.objects.create(user=user, total=Decimal("5"), shipping_address="1 Main St")
         with connection.cursor() as cursor:
-            cursor.execute("UPDATE orders_order SET shipping_address = 'old plain' WHERE id = %s", [order.pk])
-        order.refresh_from_db()
-        self.assertEqual(order.shipping_address, "old plain")
+            cursor.execute("SELECT shipping_address FROM orders_order WHERE id = %s", [order.pk])
+            raw = cursor.fetchone()[0]
+        self._raw_set(order, raw[:-4] + ("AAAA" if not raw.endswith("AAAA") else "BBBB"))
+        with self.assertRaises(ValueError):
+            order.refresh_from_db()
 
     def test_null_value_is_kept(self):
         from bookstore.fields import EncryptedTextField
@@ -76,3 +98,48 @@ class HttpsSettingsTests(TestCase):
         source = open(project_settings.__file__).read()
         self.assertIn('os.environ["DJANGO_SECRET_KEY"]', source)
         self.assertIn('os.environ["DB_PASSWORD"]', source)
+
+
+class ExistingAddressMigrationTests(TransactionTestCase):
+    def tearDown(self):
+        MigrationExecutor(connection).migrate(MigrationExecutor(connection).loader.graph.leaf_nodes())
+
+    def _raw_addresses(self):
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT shipping_address FROM orders_order ORDER BY id")
+            return [row[0] for row in cursor.fetchall()]
+
+    def test_existing_plain_addresses_are_encrypted_once(self):
+        executor = MigrationExecutor(connection)
+        executor.migrate([("orders", "0002_encrypt_shipping_address")])
+        user = User.objects.create_user("m@example.com", "pw")
+        already = Fernet(_key()).encrypt(b"2 Side St").decode()
+        with connection.cursor() as cursor:
+            for address in ("1 Main St", already):
+                cursor.execute(
+                    "INSERT INTO orders_order (user_id, status, total, shipping_address, created_at) "
+                    "VALUES (%s, 'pending', 5, %s, now())",
+                    [user.pk, address],
+                )
+        MigrationExecutor(connection).migrate([("orders", "0003_encrypt_existing_addresses")])
+        raw = self._raw_addresses()
+        self.assertNotIn("1 Main St", raw[0])
+        self.assertEqual(raw[1], already)
+        self.assertEqual(
+            [o.shipping_address for o in Order.objects.order_by("id")], ["1 Main St", "2 Side St"]
+        )
+
+    def test_migration_can_be_reversed(self):
+        user = User.objects.create_user("r@example.com", "pw")
+        Order.objects.create(user=user, total=Decimal("5"), shipping_address="3 Back St")
+        MigrationExecutor(connection).migrate([("orders", "0002_encrypt_shipping_address")])
+        self.assertEqual(self._raw_addresses(), ["3 Back St"])
+
+
+def _key():
+    import base64
+    import hashlib
+
+    from django.conf import settings
+
+    return base64.urlsafe_b64encode(hashlib.sha256(settings.SECRET_KEY.encode()).digest())
