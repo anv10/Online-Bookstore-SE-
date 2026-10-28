@@ -23,7 +23,16 @@
     </dl>
     {% if book.description %}<p>{{ book.description }}</p>{% endif %}
     {% if book.stock %}
-      <button type="button" class="button">Add to cart</button>
+      {% if user.is_authenticated %}
+        <form method="post" action="{% url 'cart_add' book.pk %}">
+          {% csrf_token %}
+          <p><label for="quantity">Copies</label>
+          <input id="quantity" type="number" name="quantity" value="1" min="1" max="{{ book.stock }}"></p>
+          <button class="button">Add to cart</button>
+        </form>
+      {% else %}
+        <a class="button" href="{% url 'login' %}?next={{ request.path|urlencode }}">Log in to buy</a>
+      {% endif %}
     {% else %}
       <button type="button" class="button" disabled>Out of stock</button>
     {% endif %}
