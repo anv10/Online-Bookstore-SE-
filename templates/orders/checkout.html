@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block content %}
+<a class="backlink" href="{% url 'cart' %}">← Back to cart</a>
+<div class="section-head">
+  <div><p class="eyebrow">CHECKOUT</p><h1>Almost yours.</h1></div>
+</div>
+<div class="auth">
+  <section class="panel" aria-label="Order summary">
+    <h2>Your order</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Book</th><th>Copies</th><th>Total</th></tr></thead>
+        <tbody>
+        {% for line in summary.lines %}
+          <tr>
+            <td>{{ line.book.title }}<br><span class="muted">{{ line.book.author }}</span></td>
+            <td>{{ line.item.quantity }}</td>
+            <td>₹{{ line.line_total }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <dl>
+      <dt>Subtotal</dt><dd>₹{{ summary.subtotal }}</dd>
+      <dt>Tax</dt><dd>₹{{ summary.tax }}</dd>
+      <dt>Shipping</dt><dd>₹{{ summary.shipping }}</dd>
+      <dt>Total</dt><dd><strong>₹{{ summary.total }}</strong></dd>
+    </dl>
+  </section>
+  <section class="panel" aria-label="Shipping address and payment">
+    <h2>Shipping and payment</h2>
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {{ form.as_p }}
+      <p class="helptext">Sandbox card for the demo: 4242 4242 4242 4242, any future expiry, any three digits. A card ending 0002 is declined. Card details are never stored.</p>
+      <button class="button">Pay ₹{{ summary.total }}</button>
+    </form>
+  </section>
+</div>
+{% endblock %}
