@@ -103,10 +103,12 @@ class InvoiceTests(TestCase):
         self.book.save()
         self.assertContains(self.client.get(self.invoice_url()), "Clean Code")
 
-    def test_shipped_orders_have_an_invoice(self):
-        self.order.status = Order.Status.SHIPPED
-        self.order.save()
-        self.assertEqual(self.client.get(self.invoice_url()).status_code, 200)
+    def test_shipped_and_delivered_orders_have_an_invoice(self):
+        for status in (Order.Status.SHIPPED, Order.Status.DELIVERED):
+            with self.subTest(status=status):
+                self.order.status = status
+                self.order.save()
+                self.assertEqual(self.client.get(self.invoice_url()).status_code, 200)
 
     def test_no_invoice_before_payment_or_after_cancellation(self):
         for status in (Order.Status.PENDING, Order.Status.CANCELLED):

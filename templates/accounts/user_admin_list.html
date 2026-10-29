@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="section-head">
+  <div><p class="eyebrow">ADMINISTRATION</p><h1>User accounts.</h1></div>
+</div>
+<form method="get" class="panel">
+  <p>
+    <label for="q">Email, phone or name</label>
+    <input id="q" type="search" name="q" value="{{ query }}" placeholder="Search accounts">
+  </p>
+  <p>
+    <label for="status">Status</label>
+    <select id="status" name="status">
+      {% for value, label in statuses %}
+        <option value="{{ value }}"{% if value == selected_status %} selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </p>
+  <button class="button small">Search</button>
+  <a class="clear" href="{% url 'user_admin_list' %}">Clear</a>
+</form>
+{% if page_obj.object_list %}
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Account</th><th>Email</th><th>Phone</th><th>Status</th><th>Joined</th><th></th></tr></thead>
+    <tbody>
+    {% for account in page_obj %}
+      <tr>
+        <td>{{ account.full_name|default:"—" }}</td>
+        <td>{{ account.email|default:"—" }}</td>
+        <td>{{ account.phone|default:"—" }}</td>
+        <td><span class="badge">{{ account.moderation_status|capfirst }}</span></td>
+        <td>{{ account.date_joined|date:"j M Y" }}</td>
+        <td><a href="{% url 'user_admin_detail' account.pk %}">Manage</a></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% if page_obj.has_other_pages %}
+<p class="pagination">
+  {% if page_obj.has_previous %}<a href="?q={{ query|urlencode }}&status={{ selected_status }}&page={{ page_obj.previous_page_number }}">Previous</a>{% endif %}
+  <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+  {% if page_obj.has_next %}<a href="?q={{ query|urlencode }}&status={{ selected_status }}&page={{ page_obj.next_page_number }}">Next</a>{% endif %}
+</p>
+{% endif %}
+{% else %}
+<div class="empty"><h2>No accounts found.</h2><p>Try a different search or status.</p></div>
+{% endif %}
+{% endblock %}

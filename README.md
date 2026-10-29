@@ -46,7 +46,7 @@ The test database is created automatically, so the `bookstore` role needs `CREAT
 
 | App | Tables |
 | --- | --- |
-| accounts | `User` (email, optional unique phone, hashed password) |
+| accounts | `User` (email, optional unique phone, hashed password, suspension/removal timestamps), `AccountAction` (audit log) |
 | catalog | `Book` (title, author, ISBN, category, price, stock) |
 | cart | `Cart` (one per user), `CartItem` |
 | orders | `Order`, `OrderItem` (no card data is ever stored) |
@@ -63,6 +63,24 @@ The workflow in `.github/workflows/django-tests.yml` (check name: **PostgreSQL t
 
 `main` is protected by a branch ruleset: changes reach it only through a pull request, and each pull request needs **at least one approving review** from someone other than its author. The **PostgreSQL tests and coverage** check should also be marked as a required status check in that ruleset, so a pull request cannot be merged while it is red.
 
+## Admin user account moderation
+
+Account administrators use **Users** in the navigation to search accounts and
+suspend or remove them with a required reason. Suspended and removed accounts
+cannot log in, existing sessions stop working, and a seller's listings disappear
+from the catalogue. Every action is recorded in an audit table; removal is soft
+so order and review history stays intact. Access requires staff status and
+`accounts.change_user`. See
+[user account moderation](docs/sprint2/user-account-moderation.md) for the
+workflow, test-plan mapping and remaining checks.
+## Ratings and reviews
+
+Buyers can rate a book from 1 to 5 and add optional text after an order containing
+it is delivered. Each buyer has one review per book and can edit it later; the
+book page shows the recalculated average. Administrators can remove inappropriate
+reviews through Django admin. See
+[ratings and reviews](docs/sprint2/ratings-reviews.md) for the test-plan mapping,
+the delivered-order dependency and remaining checks.
 ## Checkout and payment
 
 A signed-in buyer opens `/checkout/` from the cart. The page shows the items, tax and

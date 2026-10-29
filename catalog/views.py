@@ -2,6 +2,8 @@ from django.core.paginator import Paginator
 from django.db.models import Avg, Count, Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404, render
+from reviews.services import has_delivered_purchase
+
 from .forms import SearchForm
 from .models import Book, BookImage, ModerationEvent
 from .forms import EditListingForm, ListingForm
@@ -105,11 +107,23 @@ def book_detail(request, pk):
     # Listings that are not approved (status arrives with the seller listing feature) stay hidden.
     if book.status != Book.Status.APPROVED or (book.seller and not book.seller.is_active):
         raise Http404("Book not found")
-    reviews = book.reviews.select_related("user").order_by("-created_at")
-    summary = reviews.aggregate(average=Avg("rating"), count=Count("pk"))
+    reviews = list(book.reviews.select_related("user").order_by("-created_at", "-pk"))
+    summary = book.reviews.aggregate(average=Avg("rating"), count=Count("pk"))
+    user_review = None
+    can_review = False
+    if request.user.is_authenticated:
+        user_review = next((review for review in reviews if review.user_id == request.user.pk), None)
+        can_review = user_review is not None or has_delivered_purchase(request.user, book)
     return render(
         request,
         "catalog/detail.html",
-        {"book": book, "reviews": reviews, "average_rating": summary["average"], "review_count": summary["count"]},
+        {
+            "book": book,
+            "reviews": reviews,
+            "average_rating": summary["average"],
+            "review_count": summary["count"],
+            "user_review": user_review,
+            "can_review": can_review,
+        },
     )
 
