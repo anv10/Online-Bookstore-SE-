@@ -55,7 +55,7 @@ AUTH_USER_MODEL = "accounts.User"
 AUTHENTICATION_BACKENDS = ["accounts.backends.EmailOrPhoneBackend"]
 
 LOGIN_URL = "login"
-LOGIN_REDIRECT_URL = "profile"
+LOGIN_REDIRECT_URL = "catalog"
 LOGOUT_REDIRECT_URL = "login"
 
 MIDDLEWARE = [
