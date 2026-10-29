@@ -6,7 +6,7 @@ Software engineering course project.
 
 - Python 3 + Django (server-rendered templates)
 - PostgreSQL (schema managed only through Django migrations)
-- Custom user model (`accounts.User`), login by email or phone; passwords use Django's built-in hashing
+- Custom user model (`accounts.User`), login by email or phone; passwords are hashed with Argon2
 - One app per area: `accounts`, `catalog`, `cart`, `orders`, `reviews`
 - Tests: Django test runner + `coverage` (70% gate, see `.coveragerc`)
 
@@ -26,6 +26,12 @@ Software engineering course project.
 4. Copy `.env.example` to `.env`, fill in the values, and load it (`set -a; source .env; set +a`). Never commit `.env`.
 5. Apply the schema: `python manage.py migrate`
 6. Run the app: `python manage.py runserver`
+
+## Security settings (NFR-6)
+
+- Set `DJANGO_FORCE_HTTPS=1` in production: Django redirects HTTP to HTTPS, sends HSTS and marks cookies secure. TLS 1.2+ itself is configured on the web server or proxy in front of Django, which must send `X-Forwarded-Proto`.
+- `Order.shipping_address` is encrypted at rest (Fernet). Set `FIELD_ENCRYPTION_KEY` to a key from `python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"`. If it is empty, a key is derived from `DJANGO_SECRET_KEY`. Do not change this key (or rotate the secret key while it is derived) once data exists, or stored addresses can no longer be decrypted (reading them raises an error instead of returning garbage). Migration `orders.0003` encrypts addresses that were saved before encryption existed.
+- The secret key, database password and encryption key are read from environment variables only; `.env` is git-ignored.
 
 ## Tests
 
