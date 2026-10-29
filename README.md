@@ -69,6 +69,14 @@ Every page links to `/support/`, which publishes the support email address and a
 24-hour first-response target (NFR-12). Set `SUPPORT_EMAIL` in the environment to
 a monitored inbox before deployment. See
 [support channel](docs/sprint2/support-channel.md) for configuration and limits.
+## Ratings and reviews
+
+Buyers can rate a book from 1 to 5 and add optional text after an order containing
+it is delivered. Each buyer has one review per book and can edit it later; the
+book page shows the recalculated average. Administrators can remove inappropriate
+reviews through Django admin. See
+[ratings and reviews](docs/sprint2/ratings-reviews.md) for the test-plan mapping,
+the delivered-order dependency and remaining checks.
 ## Checkout and payment
 
 A signed-in buyer opens `/checkout/` from the cart. The page shows the items, tax and

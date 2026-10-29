@@ -160,6 +160,42 @@ class SellerOrderTests(TestCase):
         self.order.refresh_from_db()
         self.assertEqual((self.order.total, self.order.items.count()), (total, 2))
 
+    # --- delivery ---
+    def deliver_url(self, order=None):
+        return reverse("seller_order_deliver", args=[(order or self.order).pk])
+
+    def test_seller_can_mark_a_shipped_order_as_delivered(self):
+        self.client.post(self.ship_url())
+        response = self.client.post(self.deliver_url())
+        self.assertRedirects(response, self.detail_url())
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.status, Order.Status.DELIVERED)
+        self.assertContains(self.client.get(self.detail_url()), "Delivered")
+
+    def test_only_shipped_orders_can_be_marked_delivered(self):
+        for status in (Order.Status.PAID, Order.Status.DELIVERED, Order.Status.CANCELLED):
+            with self.subTest(status=status):
+                order = self.make_order([(self.mine, 1)], status=status)
+                self.client.post(self.deliver_url(order))
+                order.refresh_from_db()
+                self.assertEqual(order.status, status)
+
+    def test_other_sellers_cannot_mark_an_order_delivered(self):
+        self.client.post(self.ship_url())
+        self.client.force_login(self.rival)
+        self.assertEqual(self.client.post(self.deliver_url()).status_code, 404)
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.status, Order.Status.SHIPPED)
+
+    def test_deliver_needs_post_and_csrf(self):
+        self.client.post(self.ship_url())
+        self.assertEqual(self.client.get(self.deliver_url()).status_code, 405)
+        strict = Client(enforce_csrf_checks=True)
+        strict.force_login(self.seller)
+        self.assertEqual(strict.post(self.deliver_url()).status_code, 403)
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.status, Order.Status.SHIPPED)
+
     # --- access ---
     def test_buyers_without_the_seller_permission_get_403(self):
         self.client.force_login(self.buyer)

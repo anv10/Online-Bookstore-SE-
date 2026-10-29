@@ -22,7 +22,14 @@
   {% csrf_token %}
   <button class="button">Mark as shipped</button>
 </form>
+{% elif can_deliver %}
+<form method="post" action="{% url 'seller_order_deliver' order.pk %}">
+  {% csrf_token %}
+  <button class="button">Mark as delivered</button>
+</form>
 {% elif order.status == 'paid' %}
 <p class="muted">An order with books from several sellers cannot be marked as shipped here yet.</p>
+{% elif order.status == 'shipped' %}
+<p class="muted">An order with books from several sellers cannot be marked as delivered here yet.</p>
 {% endif %}
 {% endblock %}
