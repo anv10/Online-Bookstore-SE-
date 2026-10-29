@@ -46,7 +46,7 @@ Issue #10 replaces the provider by implementing `charge()` against the chosen ga
 
 ## Validation and test plan mapping
 
-Local validation: Python 3.12.10, Django 5.2.18, in-memory SQLite override used only by the validation process (no local PostgreSQL is provisioned here). The full suite passes (165 tests) with 99% statement coverage, above the configured 70% gate; `manage.py check` and `makemigrations --check` are clean. SQLite cannot exercise PostgreSQL row locks or true concurrent transactions, so the concurrency case is covered by a deterministic last-copy test plus the guarded update; run the repository PostgreSQL workflow before merge.
+Local validation: Python 3.12.10, Django 5.2.18, in-memory SQLite override used only by the validation process (no local PostgreSQL is provisioned here). The full suite passes (169 tests) with 99% statement coverage, above the configured 70% gate; `manage.py check` and `makemigrations --check` are clean, and the repository PostgreSQL workflow passes on the pull request. SQLite cannot exercise PostgreSQL row locks or true concurrent transactions, so the concurrency case is covered by a deterministic last-copy test plus the guarded update in CI.
 
 | Submitted test ID | Evidence in `orders/tests/test_checkout.py` | Note |
 | --- | --- | --- |
