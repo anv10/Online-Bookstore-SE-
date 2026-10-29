@@ -1,0 +1,8 @@
+{% extends 'base.html' %}
+{% block content %}
+<a href="{% url 'moderation_queue' %}">Back to moderation</a>
+<h1>{{ book.title }}</h1><p>{{ book.author }} · ISBN {{ book.isbn }}</p><p>{{ book.description|linebreaksbr }}</p><p>Seller: {{ book.seller|default:'Not assigned' }} | Price: {{ book.price }} | Stock: {{ book.stock }} | Status: {{ book.get_status_display }}</p>
+{% for image in book.images.all %}<img src="{{ image.image.url }}" alt="Listing image for {{ book.title }}" style="max-width:100%;max-height:300px">{% endfor %}
+<form method="post">{% csrf_token %}{{ form.as_p }}<button>Save moderation decision</button></form>
+<h2>Decision history</h2>{% for event in events %}<article><p>{{ event.created_at }} · {{ event.admin }} · {{ event.previous_status }} → {{ event.new_status }}</p><p>{{ event.reason }}</p></article>{% empty %}<p>No admin decisions recorded.</p>{% endfor %}
+{% endblock %}

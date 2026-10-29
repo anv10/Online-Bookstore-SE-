@@ -11,3 +11,9 @@ class BookAdmin(admin.ModelAdmin):
     list_filter = ["status", "category"]
     search_fields = ["title", "isbn", "seller__email"]
     inlines = [BookImageInline]
+
+    # Decisions must pass the second factor, reason and audit checks at /moderation/.
+    readonly_fields = ["status"]
+
+    def has_delete_permission(self, request, obj=None):
+        return False

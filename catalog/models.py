@@ -46,3 +46,29 @@ class BookImage(models.Model):
 
     class Meta:
         ordering = ["pk"]
+
+
+class ModerationEvent(models.Model):
+    book = models.ForeignKey(Book, on_delete=models.PROTECT, related_name="moderation_events")
+    admin = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    previous_status = models.CharField(max_length=10)
+    new_status = models.CharField(max_length=10, choices=Book.Status.choices)
+    reason = models.CharField(max_length=1000)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at", "-pk"]
+        default_permissions = ("view",)
+
+
+class AdminChallenge(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    code_hash = models.CharField(max_length=256, blank=True)
+    session_hash = models.CharField(max_length=64, blank=True)
+    expires_at = models.DateTimeField(null=True)
+    attempts = models.PositiveSmallIntegerField(default=0)
+    window_started = models.DateTimeField()
+    requests = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        default_permissions = ()
