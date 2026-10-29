@@ -26,6 +26,7 @@ from catalog.views import book_detail, catalog, listing_add, listing_edit, listi
 from orders.seller_views import seller_order_detail, seller_order_ship, seller_orders
 from orders.views import invoice_download, invoice_view, order_detail, order_list
 from wishlist.views import wishlist_add, wishlist_detail, wishlist_remove, wishlist_to_cart
+from orders.views import checkout, invoice_download, invoice_view, order_confirmation, order_detail, order_list
 
 urlpatterns = [
     path("", catalog, name="catalog"),
@@ -52,6 +53,8 @@ urlpatterns = [
     path("wishlist/add/<int:book_id>/", wishlist_add, name="wishlist_add"),
     path("wishlist/items/<int:item_id>/remove/", wishlist_remove, name="wishlist_remove"),
     path("wishlist/items/<int:item_id>/to-cart/", wishlist_to_cart, name="wishlist_to_cart"),
+    path("checkout/", checkout, name="checkout"),
+    path("orders/<int:pk>/confirmation/", order_confirmation, name="order_confirmation"),
     path("admin/", admin.site.urls),
     path("accounts/", include("accounts.urls")),
 ]
