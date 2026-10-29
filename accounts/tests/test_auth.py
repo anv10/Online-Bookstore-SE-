@@ -9,6 +9,7 @@ class LoginTests(TestCase):
         self.user = User.objects.create_user("reader@example.com", "s3cret-pass", phone="+15550100")
         self.login_url = reverse("login")
         self.profile_url = reverse("profile")
+        self.landing_url = reverse("catalog")
 
     def test_login_page_renders(self):
         response = self.client.get(self.login_url)
@@ -17,16 +18,16 @@ class LoginTests(TestCase):
 
     def test_login_with_email_starts_session(self):
         response = self.client.post(self.login_url, {"username": "reader@example.com", "password": "s3cret-pass"})
-        self.assertRedirects(response, self.profile_url)
+        self.assertRedirects(response, self.landing_url)
         self.assertEqual(int(self.client.session["_auth_user_id"]), self.user.pk)
 
     def test_login_with_email_is_case_insensitive(self):
         response = self.client.post(self.login_url, {"username": "READER@Example.com", "password": "s3cret-pass"})
-        self.assertRedirects(response, self.profile_url)
+        self.assertRedirects(response, self.landing_url)
 
     def test_login_with_phone(self):
         response = self.client.post(self.login_url, {"username": "+15550100", "password": "s3cret-pass"})
-        self.assertRedirects(response, self.profile_url)
+        self.assertRedirects(response, self.landing_url)
 
     def test_wrong_password_and_unknown_user_give_same_generic_error(self):
         wrong_password = self.client.post(self.login_url, {"username": "reader@example.com", "password": "nope"})
@@ -89,7 +90,7 @@ class PhoneOnlyUserTests(TestCase):
     def test_phone_only_user_can_log_in_and_see_profile(self):
         User.objects.create_user(password="s3cret-pass", phone="+15550222")
         response = self.client.post(reverse("login"), {"username": "+15550222", "password": "s3cret-pass"})
-        self.assertRedirects(response, reverse("profile"))
+        self.assertRedirects(response, reverse("catalog"))
         page = self.client.get(reverse("profile"))
         self.assertContains(page, "+15550222")
         self.assertNotContains(page, "None")
