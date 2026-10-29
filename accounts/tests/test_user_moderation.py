@@ -3,6 +3,7 @@ from decimal import Decimal
 from django.contrib.auth.models import Permission
 from django.test import Client, TestCase
 from django.urls import reverse
+from django.utils import timezone
 
 from accounts.models import AccountAction, User
 from catalog.models import Book
@@ -134,6 +135,19 @@ class UserModerationTests(TestCase):
         self.assertNotContains(self.client.get(reverse("catalog")), "Clean Code")
         self.assertEqual(self.client.get(reverse("book_detail", args=[book.pk])).status_code, 404)
         self.assertEqual(self.client.post(reverse("cart_add", args=[book.pk])).status_code, 404)
+
+    def test_suspended_or_removed_status_blocks_login_even_if_is_active_is_restored(self):
+        for field in ("suspended_at", "removed_at"):
+            with self.subTest(field=field):
+                user = User.objects.create_user(f"{field}@example.com", "Reading2026!")
+                setattr(user, field, timezone.now())
+                user.is_active = True
+                user.save(update_fields=[field, "is_active"])
+                self.client.logout()
+                self.client.post(
+                    reverse("login"), {"username": user.email, "password": "Reading2026!"}
+                )
+                self.assertNotIn("_auth_user_id", self.client.session)
 
     def test_an_existing_session_is_invalidated_after_suspension(self):
         target_client = Client()
