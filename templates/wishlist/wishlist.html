@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="section-head">
+  <div><p class="eyebrow">YOUR WISHLIST</p><h1>Books for later.</h1></div>
+  <a class="button" href="{% url 'catalog' %}">Keep browsing</a>
+</div>
+{% if lines %}
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Book</th><th>Price</th><th>Availability</th><th></th></tr></thead>
+    <tbody>
+    {% for line in lines %}
+      <tr>
+        <td>
+          <a href="{% url 'book_detail' line.book.pk %}">{{ line.book.title }}</a><br>
+          <span class="muted">{{ line.book.author }}</span>
+        </td>
+        <td>₹{{ line.book.price }}</td>
+        <td>{% if line.available %}In stock ({{ line.book.stock }} available){% else %}<span class="out">Not available</span>{% endif %}</td>
+        <td>
+          {% if line.available %}
+          <form method="post" action="{% url 'wishlist_to_cart' line.item.pk %}">
+            {% csrf_token %}
+            <button class="small">Move to cart</button>
+          </form>
+          {% endif %}
+          <form method="post" action="{% url 'wishlist_remove' line.item.pk %}">
+            {% csrf_token %}
+            <button class="small link">Remove</button>
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty"><h2>Your wishlist is empty.</h2><p>Save books you want to buy later.</p></div>
+{% endif %}
+{% endblock %}
