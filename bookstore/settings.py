@@ -46,12 +46,17 @@ INSTALLED_APPS = [
     "reviews",
 ]
 
+PASSWORD_HASHERS = [
+    "django.contrib.auth.hashers.Argon2PasswordHasher",
+    "django.contrib.auth.hashers.PBKDF2PasswordHasher",
+]
+
 AUTH_USER_MODEL = "accounts.User"
 
 AUTHENTICATION_BACKENDS = ["accounts.backends.EmailOrPhoneBackend"]
 
 LOGIN_URL = "login"
-LOGIN_REDIRECT_URL = "profile"
+LOGIN_REDIRECT_URL = "catalog"
 LOGOUT_REDIRECT_URL = "login"
 
 MIDDLEWARE = [
@@ -147,6 +152,21 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 LOGIN_URL = "/accounts/login/"  # Login/logout is teammate issue #2.
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
+
+# Encryption at rest for sensitive columns (see bookstore/fields.py).
+# If FIELD_ENCRYPTION_KEY is not set, a key is derived from DJANGO_SECRET_KEY.
+FIELD_ENCRYPTION_KEY = os.environ.get("FIELD_ENCRYPTION_KEY", "")
+
+# TLS 1.2+ is terminated by the web server / proxy; with DJANGO_FORCE_HTTPS=1
+# Django redirects plain HTTP and only sends cookies over HTTPS.
+FORCE_HTTPS = os.environ.get("DJANGO_FORCE_HTTPS", "0") == "1"
+if FORCE_HTTPS:
+    SECURE_SSL_REDIRECT = True
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
 
 # SMTP for admin verification. Development/tests may override with locmem, never console.
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
