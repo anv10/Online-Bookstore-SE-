@@ -37,10 +37,14 @@
       <button type="button" class="button" disabled>Out of stock</button>
     {% endif %}
     {% if user.is_authenticated %}
+      {% if in_wishlist %}
+        <a class="button" href="{% url 'wishlist' %}">In your wishlist</a>
+      {% else %}
       <form method="post" action="{% url 'wishlist_add' book.pk %}">
         {% csrf_token %}
         <button class="button">Add to wishlist</button>
       </form>
+      {% endif %}
     {% endif %}
   </div>
 </section>

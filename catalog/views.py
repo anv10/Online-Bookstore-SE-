@@ -111,7 +111,9 @@ def book_detail(request, pk):
     summary = book.reviews.aggregate(average=Avg("rating"), count=Count("pk"))
     user_review = None
     can_review = False
+    in_wishlist = False
     if request.user.is_authenticated:
+        in_wishlist = request.user.wishlist_items.filter(book=book).exists()
         user_review = next((review for review in reviews if review.user_id == request.user.pk), None)
         can_review = user_review is not None or has_delivered_purchase(request.user, book)
     return render(
@@ -124,6 +126,7 @@ def book_detail(request, pk):
             "review_count": summary["count"],
             "user_review": user_review,
             "can_review": can_review,
+            "in_wishlist": in_wishlist,
         },
     )
 

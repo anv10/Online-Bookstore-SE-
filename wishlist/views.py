@@ -57,7 +57,10 @@ def wishlist_to_cart(request, item_id):
         return redirect("wishlist")
     cart, _ = Cart.objects.get_or_create(user=request.user)
     cart_item, created = CartItem.objects.get_or_create(cart=cart, book=book, defaults={"quantity": 1})
-    if not created and cart_item.quantity < book.stock:
+    if not created:
+        if cart_item.quantity >= book.stock:
+            messages.error(request, f"Your cart already has every available copy of \"{book.title}\".")
+            return redirect("wishlist")
         cart_item.quantity += 1
         cart_item.save(update_fields=["quantity"])
     item.delete()

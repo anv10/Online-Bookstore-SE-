@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="section-head">
+  <div>
+    <p class="eyebrow">CUSTOMER SUPPORT</p>
+    <h1>How can we help?</h1>
+    <p class="muted">Email us about an order, a listing, a payment or your account. We reply within 24 hours.</p>
+  </div>
+</div>
+
+<section class="panel">
+  <h2>Email support</h2>
+  <p>Write to <a href="mailto:{{ support_email }}">{{ support_email }}</a>.</p>
+  <p><a class="button" href="mailto:{{ support_email }}">Send an email</a></p>
+  <p class="muted">Include your order number (for example #12) and the email or phone number on your account so we can find it quickly.</p>
+</section>
+
+<h2>Common questions</h2>
+<dl>
+  <dt>Where is my order?</dt>
+  <dd>Open <a href="{% url 'order_list' %}">Your orders</a> for the latest status. Sellers update an order when it ships and when it is delivered.</dd>
+  <dt>Can I change or cancel an order?</dt>
+  <dd>Email us as soon as possible with the order number. Once a seller has shipped an order it can no longer be changed.</dd>
+  <dt>How do I review a book?</dt>
+  <dd>After an order is delivered, open the book and choose <strong>Write a review</strong>. One review per buyer per book, editable at any time.</dd>
+  <dt>I sell books here.</dt>
+  <dd>{% if perms.catalog.add_book %}Use <a href="{% url 'seller_listings' %}">Your listings</a> to manage stock and orders.{% else %}Sellers manage stock and orders from the "Your listings" link after signing in.{% endif %} Email us if a listing is stuck in moderation.</dd>
+  <dt>My account was suspended.</dt>
+  <dd>Email us from the address or phone number on the account and include the reason you believe the action was taken in error.</dd>
+</dl>
+<p class="muted">Our target first-response time is 24 hours. Messages sent outside business hours are answered the next working day.</p>
+{% endblock %}

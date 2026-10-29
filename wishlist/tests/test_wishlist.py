@@ -97,8 +97,10 @@ class WishlistTests(TestCase):
         cart = Cart.objects.create(user=self.user)
         CartItem.objects.create(cart=cart, book=self.book, quantity=3)
         item = WishlistItem.objects.create(user=self.user, book=self.book)
-        self.client.post(reverse("wishlist_to_cart", args=[item.pk]))
+        response = self.client.post(reverse("wishlist_to_cart", args=[item.pk]))
+        self.assertRedirects(response, reverse("wishlist"))
         self.assertEqual(CartItem.objects.get(cart=cart).quantity, 3)
+        self.assertEqual(WishlistItem.objects.count(), 1)
 
     def test_cannot_move_out_of_stock_book(self):
         item = WishlistItem.objects.create(user=self.user, book=self.book)
@@ -114,3 +116,13 @@ class WishlistTests(TestCase):
 
     def test_detail_page_has_wishlist_button(self):
         self.assertContains(self.client.get(reverse("book_detail", args=[self.book.pk])), "Add to wishlist")
+
+    def test_detail_page_shows_saved_state(self):
+        self.add()
+        response = self.client.get(reverse("book_detail", args=[self.book.pk]))
+        self.assertContains(response, "In your wishlist")
+        self.assertNotContains(response, "Add to wishlist")
+
+    def test_str(self):
+        item = WishlistItem.objects.create(user=self.user, book=self.book)
+        self.assertEqual(str(item), f"{self.user.pk}: {self.book.pk}")
