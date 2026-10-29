@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="section-head">
+  <div><p class="eyebrow">ORDER CONFIRMED</p><h1>Thank you.</h1></div>
+</div>
+<div class="panel">
+  <p class="badge">Payment received</p>
+  <h2>Order #{{ order.pk }}</h2>
+  <p class="muted">Placed {{ order.created_at|date:"j M Y, H:i" }} UTC</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Book</th><th>Copies</th><th>Price each</th></tr></thead>
+      <tbody>
+      {% for item in order.items.all %}
+        <tr><td>{{ item.book.title }}</td><td>{{ item.quantity }}</td><td>₹{{ item.unit_price }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <dl>
+    <dt>Total paid</dt><dd><strong>₹{{ order.total }}</strong></dd>
+    <dt>Status</dt><dd>{{ order.get_status_display }}</dd>
+    <dt>Shipping to</dt><dd>{{ order.shipping_address|linebreaksbr }}</dd>
+  </dl>
+  <a class="button" href="{% url 'catalog' %}">Keep browsing</a>
+</div>
+{% endblock %}

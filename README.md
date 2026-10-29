@@ -57,6 +57,17 @@ The workflow in `.github/workflows/django-tests.yml` (check name: **PostgreSQL t
 
 `main` is protected by a branch ruleset: changes reach it only through a pull request, and each pull request needs **at least one approving review** from someone other than its author. The **PostgreSQL tests and coverage** check should also be marked as a required status check in that ruleset, so a pull request cannot be merged while it is red.
 
+## Checkout and payment
+
+A signed-in buyer opens `/checkout/` from the cart. The page shows the items, tax and
+shipping, and takes a shipping address plus card details. The card is charged, then
+the order is created as paid and stock is decremented in the same transaction; a
+declined card leaves the cart and stock untouched. Development and tests use the
+sandbox gateway (`PAYMENT_GATEWAY=sandbox`): card `4242 4242 4242 4242` succeeds and
+`4000 0000 0000 0002` is declined. No card data is stored. See
+[checkout and payment](docs/sprint2/checkout-and-payment.md) for totals, test-plan
+mapping and remaining checks.
+
 ## Admin listing moderation
 
 Moderators use `/moderation/` to review pending listings and approve, suspend or
