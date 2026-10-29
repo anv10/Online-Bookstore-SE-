@@ -20,6 +20,7 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 
+from bookstore.views import support
 from cart.views import cart_add, cart_detail, cart_remove, cart_update
 from catalog import moderation
 from catalog.views import book_detail, catalog, listing_add, listing_edit, listing_remove, seller_listings
@@ -28,6 +29,7 @@ from orders.views import invoice_download, invoice_view, order_detail, order_lis
 
 urlpatterns = [
     path("", catalog, name="catalog"),
+    path("support/", support, name="support"),
     path("books/<int:pk>/", book_detail, name="book_detail"),
     path("seller/new/", listing_add, name="listing_add"),
     path("seller/", seller_listings, name="seller_listings"),

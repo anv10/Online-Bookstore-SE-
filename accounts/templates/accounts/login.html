@@ -1,27 +1,32 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Log in - Online Bookstore</title>
-</head>
-<body>
-  <main>
-    <h1>Log in</h1>
+{% extends 'base.html' %}
+{% block content %}
+<div class="auth">
+  <div>
+    <p class="eyebrow">WELCOME BACK</p>
+    <h1>Pick up where you left off.</h1>
+    <p class="muted">Your cart, orders and saved books are waiting for you.</p>
+    <p class="quote">“A reader lives a thousand lives before he dies.”<small>George R. R. Martin</small></p>
+  </div>
+  <div class="panel">
+    <h2>Log in</h2>
     <form method="post">
       {% csrf_token %}
       {{ form.non_field_errors }}
       <p>
         {{ form.username.label_tag }}
         {{ form.username }}
+        {{ form.username.errors }}
       </p>
       <p>
         {{ form.password.label_tag }}
         {{ form.password }}
+        {{ form.password.errors }}
       </p>
       <input type="hidden" name="next" value="{{ next }}">
-      <button type="submit">Log in</button>
+      <button class="button">Log in</button>
     </form>
-  </main>
-</body>
-</html>
+    <p>New here? <a href="{% url 'register' %}">Create an account</a>.</p>
+    <p class="muted">Need help? <a href="{% url 'support' %}">Contact customer support</a>.</p>
+  </div>
+</div>
+{% endblock %}

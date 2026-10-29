@@ -63,6 +63,13 @@ The workflow in `.github/workflows/django-tests.yml` (check name: **PostgreSQL t
 
 `main` is protected by a branch ruleset: changes reach it only through a pull request, and each pull request needs **at least one approving review** from someone other than its author. The **PostgreSQL tests and coverage** check should also be marked as a required status check in that ruleset, so a pull request cannot be merged while it is red.
 
+## Customer support
+
+Every page links to `/support/`, which publishes the support email address and a
+24-hour first-response target (NFR-12). Set `SUPPORT_EMAIL` in the environment to
+a monitored inbox before deployment. See
+[support channel](docs/sprint2/support-channel.md) for configuration and limits.
+
 ## Admin listing moderation
 
 Moderators use `/moderation/` to review pending listings and approve, suspend or
