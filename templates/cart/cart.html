@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="section-head">
+  <div><p class="eyebrow">YOUR CART</p><h1>Ready when you are.</h1></div>
+  <a class="button" href="{% url 'catalog' %}">Keep browsing</a>
+</div>
+{% if lines %}
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Book</th><th>Price</th><th>Copies</th><th>Subtotal</th><th></th></tr></thead>
+    <tbody>
+    {% for line in lines %}
+      <tr>
+        <td>
+          <a href="{% url 'book_detail' line.book.pk %}">{{ line.book.title }}</a><br>
+          <span class="muted">{{ line.book.author }}</span>
+          {% if not line.buyable %}<br><span class="out">No longer available. Remove it to continue.</span>{% endif %}
+          {% if line.over_stock %}<br><span class="out">Only {{ line.book.stock }} left. Lower the copies.</span>{% endif %}
+        </td>
+        <td>₹{{ line.book.price }}</td>
+        <td>
+          {% if line.buyable %}
+          <form method="post" action="{% url 'cart_update' line.item.pk %}">
+            {% csrf_token %}
+            <input type="number" name="quantity" value="{{ line.item.quantity }}" min="1" max="{{ line.book.stock }}" aria-label="Copies of {{ line.book.title }}">
+            <button class="small">Update</button>
+          </form>
+          {% else %}{{ line.item.quantity }}{% endif %}
+        </td>
+        <td>₹{{ line.subtotal }}</td>
+        <td>
+          <form method="post" action="{% url 'cart_remove' line.item.pk %}">
+            {% csrf_token %}
+            <button class="small link">Remove</button>
+          </form>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+    <tfoot><tr><th colspan="3">Total</th><th colspan="2">₹{{ total }}</th></tr></tfoot>
+  </table>
+</div>
+{% else %}
+<div class="empty"><h2>Your cart is empty.</h2><p>Find a book you like and add it here.</p></div>
+{% endif %}
+{% endblock %}
