@@ -6,10 +6,11 @@ from bookstore.fields import EncryptedTextField
 
 class Order(models.Model):
     class Status(models.TextChoices):
-        PENDING = "pending"
-        PAID = "paid"
-        SHIPPED = "shipped"
-        CANCELLED = "cancelled"
+        PENDING = "pending", "Placed"
+        PAID = "paid", "Paid"
+        SHIPPED = "shipped", "Shipped"
+        DELIVERED = "delivered", "Delivered"
+        CANCELLED = "cancelled", "Cancelled"
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="orders")
     status = models.CharField(max_length=10, choices=Status.choices, default=Status.PENDING)

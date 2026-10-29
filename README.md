@@ -46,7 +46,7 @@ The test database is created automatically, so the `bookstore` role needs `CREAT
 
 | App | Tables |
 | --- | --- |
-| accounts | `User` (email, optional unique phone, hashed password) |
+| accounts | `User` (email, optional unique phone, hashed password, suspension/removal timestamps), `AccountAction` (audit log) |
 | catalog | `Book` (title, author, ISBN, category, price, stock) |
 | cart | `Cart` (one per user), `CartItem` |
 | orders | `Order`, `OrderItem` (no card data is ever stored) |
@@ -62,6 +62,41 @@ The workflow in `.github/workflows/django-tests.yml` (check name: **PostgreSQL t
 4. fails the build if total coverage is below **70%** (`coverage report --fail-under=70`).
 
 `main` is protected by a branch ruleset: changes reach it only through a pull request, and each pull request needs **at least one approving review** from someone other than its author. The **PostgreSQL tests and coverage** check should also be marked as a required status check in that ruleset, so a pull request cannot be merged while it is red.
+
+## Customer support
+
+Every page links to `/support/`, which publishes the support email address and a
+24-hour first-response target (NFR-12). Set `SUPPORT_EMAIL` in the environment to
+a monitored inbox before deployment. See
+[support channel](docs/sprint2/support-channel.md) for configuration and limits.
+## Admin user account moderation
+
+Account administrators use **Users** in the navigation to search accounts and
+suspend or remove them with a required reason. Suspended and removed accounts
+cannot log in, existing sessions stop working, and a seller's listings disappear
+from the catalogue. Every action is recorded in an audit table; removal is soft
+so order and review history stays intact. Access requires staff status and
+`accounts.change_user`. See
+[user account moderation](docs/sprint2/user-account-moderation.md) for the
+workflow, test-plan mapping and remaining checks.
+## Ratings and reviews
+
+Buyers can rate a book from 1 to 5 and add optional text after an order containing
+it is delivered. Each buyer has one review per book and can edit it later; the
+book page shows the recalculated average. Administrators can remove inappropriate
+reviews through Django admin. See
+[ratings and reviews](docs/sprint2/ratings-reviews.md) for the test-plan mapping,
+the delivered-order dependency and remaining checks.
+## Checkout and payment
+
+A signed-in buyer opens `/checkout/` from the cart. The page shows the items, tax and
+shipping, and takes a shipping address plus card details. The card is charged, then
+the order is created as paid and stock is decremented in the same transaction; a
+declined card leaves the cart and stock untouched. Development and tests use the
+sandbox gateway (`PAYMENT_GATEWAY=sandbox`): card `4242 4242 4242 4242` succeeds and
+`4000 0000 0000 0002` is declined. No card data is stored. See
+[checkout and payment](docs/sprint2/checkout-and-payment.md) for totals, test-plan
+mapping and remaining checks.
 
 ## Admin listing moderation
 

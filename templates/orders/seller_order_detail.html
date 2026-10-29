@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block content %}
+<a class="backlink" href="{% url 'seller_orders' %}">← Orders</a>
+<div class="section-head"><div><p class="eyebrow">ORDER #{{ order.pk }}</p><h1>{{ order.get_status_display }}.</h1></div></div>
+<p class="muted">Placed on {{ order.created_at|date:"j M Y" }} by {{ order.user.full_name|default:"a buyer" }}</p>
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Your book</th><th>Price</th><th>Copies</th><th>Amount</th></tr></thead>
+    <tbody>
+    {% for entry in items %}
+      <tr><td>{{ entry.item.book.title }}</td><td>₹{{ entry.item.unit_price }}</td><td>{{ entry.item.quantity }}</td><td>₹{{ entry.line_total }}</td></tr>
+    {% endfor %}
+    </tbody>
+    <tfoot><tr><th colspan="3">Your total</th><td>₹{{ total }}</td></tr></tfoot>
+  </table>
+</div>
+<h2>Ship to</h2>
+<p>{{ order.shipping_address|linebreaksbr }}</p>
+{% if shared %}<p class="notice">This order also contains books from other sellers.</p>{% endif %}
+{% if can_ship %}
+<form method="post" action="{% url 'seller_order_ship' order.pk %}">
+  {% csrf_token %}
+  <button class="button">Mark as shipped</button>
+</form>
+{% elif can_deliver %}
+<form method="post" action="{% url 'seller_order_deliver' order.pk %}">
+  {% csrf_token %}
+  <button class="button">Mark as delivered</button>
+</form>
+{% elif order.status == 'paid' %}
+<p class="muted">An order with books from several sellers cannot be marked as shipped here yet.</p>
+{% elif order.status == 'shipped' %}
+<p class="muted">An order with books from several sellers cannot be marked as delivered here yet.</p>
+{% endif %}
+{% endblock %}

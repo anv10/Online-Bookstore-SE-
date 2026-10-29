@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import views
+from . import moderation, views
 
 urlpatterns = [
     path("register/", views.register, name="register"),
@@ -10,4 +10,6 @@ urlpatterns = [
     path("password-reset/sent/", views.password_reset_done, name="password_reset_done"),
     path("password-reset/<uidb64>/<token>/", views.password_reset_confirm, name="password_reset_confirm"),
     path("me/", views.profile, name="profile"),
+    path("admin/users/", moderation.user_list, name="user_admin_list"),
+    path("admin/users/<int:pk>/", moderation.user_detail, name="user_admin_detail"),
 ]

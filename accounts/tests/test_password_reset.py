@@ -44,6 +44,21 @@ class PasswordResetTests(TestCase):
         self.client.post(self.request_url, {"identifier": "+15550222"})
         self.assertEqual(len(mail.outbox), 0)
 
+    def test_suspended_account_gets_no_mail(self):
+        self.user.is_active = False
+        self.user.save()
+        self.client.post(self.request_url, {"identifier": "reader@example.com"})
+        self.assertEqual(len(mail.outbox), 0)
+
+    def test_pages_use_the_site_layout(self):
+        self.assertContains(self.client.get(self.request_url), "store.css")
+        self.assertContains(self.client.get(reverse("password_reset_done")), "store.css")
+
+    def test_success_message_shows_on_login_page(self):
+        link = self._link()
+        response = self.client.post(link, {"password": "brand-new-9", "confirm_password": "brand-new-9"}, follow=True)
+        self.assertContains(response, "Password changed")
+
     def test_valid_link_sets_new_password(self):
         link = self._link()
         self.assertEqual(self.client.get(link).status_code, 200)

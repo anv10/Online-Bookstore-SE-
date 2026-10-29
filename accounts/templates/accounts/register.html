@@ -1,17 +1,21 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Register</title>
-</head>
-<body>
-  <h1>Create an account</h1>
-  {% for message in messages %}<p>{{ message }}</p>{% endfor %}
-  <form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Register</button>
-  </form>
-</body>
-</html>
+{% extends 'base.html' %}
+{% block content %}
+<div class="auth">
+  <div>
+    <p class="eyebrow">JOIN THE SHELVES</p>
+    <h1>Create your reader account.</h1>
+    <p class="muted">Buy books, track orders, review what you have read and sell your own copies.</p>
+    <p class="quote">“There is no friend as loyal as a book.”<small>Ernest Hemingway</small></p>
+  </div>
+  <div class="panel">
+    <h2>Register</h2>
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button class="button">Create account</button>
+    </form>
+    <p>Already registered? <a href="{% url 'login' %}">Log in</a>.</p>
+    <p class="muted">Need help? <a href="{% url 'support' %}">Contact customer support</a>.</p>
+  </div>
+</div>
+{% endblock %}

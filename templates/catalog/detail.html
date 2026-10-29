@@ -23,17 +23,37 @@
     </dl>
     {% if book.description %}<p>{{ book.description }}</p>{% endif %}
     {% if book.stock %}
-      <button type="button" class="button">Add to cart</button>
+      {% if user.is_authenticated %}
+        <form method="post" action="{% url 'cart_add' book.pk %}">
+          {% csrf_token %}
+          <p><label for="quantity">Copies</label>
+          <input id="quantity" type="number" name="quantity" value="1" min="1" max="{{ book.stock }}"></p>
+          <button class="button">Add to cart</button>
+        </form>
+      {% else %}
+        <a class="button" href="{% url 'login' %}?next={{ request.path|urlencode }}">Log in to buy</a>
+      {% endif %}
     {% else %}
       <button type="button" class="button" disabled>Out of stock</button>
     {% endif %}
   </div>
 </section>
 <section class="reviews" aria-label="Reviews">
-  <h2>Reviews</h2>
+  <div class="section-head">
+    <h2>Reviews</h2>
+    {% if user_review %}
+      <a class="button small" href="{% url 'review_submit' book.pk %}">Edit your review</a>
+    {% elif can_review %}
+      <a class="button small" href="{% url 'review_submit' book.pk %}">Write a review</a>
+    {% endif %}
+  </div>
+  {% if user.is_authenticated and not can_review %}
+    <p class="muted">You can review this book after an order containing it is delivered.</p>
+  {% endif %}
   {% for review in reviews %}
     <article>
       <strong>{{ review.rating }} / 5</strong> · {{ review.user.full_name|default:'A reader' }}
+      {% if review.user_id == user.pk %}<span class="badge">Your review</span>{% endif %}
       {% if review.comment %}<p>{{ review.comment }}</p>{% endif %}
     </article>
   {% empty %}

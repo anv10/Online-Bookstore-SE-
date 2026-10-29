@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
 import os
+from decimal import Decimal
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -55,7 +56,7 @@ AUTH_USER_MODEL = "accounts.User"
 AUTHENTICATION_BACKENDS = ["accounts.backends.EmailOrPhoneBackend"]
 
 LOGIN_URL = "login"
-LOGIN_REDIRECT_URL = "profile"
+LOGIN_REDIRECT_URL = "catalog"
 LOGOUT_REDIRECT_URL = "login"
 
 # Password reset links stop working after one hour.
@@ -179,3 +180,12 @@ EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
 EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "1") == "1"
 EMAIL_TIMEOUT = 10
 DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "bookstore@localhost")
+
+# Customer support address shown in the footer and on the support page (NFR-12).
+SUPPORT_EMAIL = os.environ.get("SUPPORT_EMAIL", "support@chapterandco.example")
+# Checkout (FR-5). Prices are in rupees. Card data is never stored; the sandbox
+# gateway is the development/test provider until issue #10 adds the hosted one.
+CHECKOUT_TAX_RATE = Decimal(os.environ.get("CHECKOUT_TAX_RATE", "0.05"))
+CHECKOUT_SHIPPING_FLAT = Decimal(os.environ.get("CHECKOUT_SHIPPING_FLAT", "50.00"))
+PAYMENT_GATEWAY = os.environ.get("PAYMENT_GATEWAY", "sandbox")
+PAYMENT_SANDBOX_DECLINE_CARDS = ["4000000000000002"]

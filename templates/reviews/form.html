@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block content %}
+<a class="backlink" href="{% url 'book_detail' book.pk %}">← Back to {{ book.title }}</a>
+<div class="editor">
+  <p class="eyebrow">{% if review %}EDIT YOUR REVIEW{% else %}RATE THIS BOOK{% endif %}</p>
+  <h1>{{ book.title }}</h1>
+  <p class="muted">by {{ book.author }}</p>
+  <form method="post" class="panel">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    <p>
+      <label for="{{ form.rating.id_for_label }}">Rating (1-5)</label>
+      {{ form.rating }}
+      {{ form.rating.errors }}
+    </p>
+    <p>
+      <label for="{{ form.comment.id_for_label }}">Review (optional)</label>
+      {{ form.comment }}
+      {{ form.comment.errors }}
+    </p>
+    <button class="button">{% if review %}Save changes{% else %}Post review{% endif %}</button>
+  </form>
+</div>
+{% endblock %}
