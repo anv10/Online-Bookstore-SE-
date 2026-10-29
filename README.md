@@ -73,6 +73,16 @@ so order and review history stays intact. Access requires staff status and
 `accounts.change_user`. See
 [user account moderation](docs/sprint2/user-account-moderation.md) for the
 workflow, test-plan mapping and remaining checks.
+## Checkout and payment
+
+A signed-in buyer opens `/checkout/` from the cart. The page shows the items, tax and
+shipping, and takes a shipping address plus card details. The card is charged, then
+the order is created as paid and stock is decremented in the same transaction; a
+declined card leaves the cart and stock untouched. Development and tests use the
+sandbox gateway (`PAYMENT_GATEWAY=sandbox`): card `4242 4242 4242 4242` succeeds and
+`4000 0000 0000 0002` is declined. No card data is stored. See
+[checkout and payment](docs/sprint2/checkout-and-payment.md) for totals, test-plan
+mapping and remaining checks.
 
 ## Admin listing moderation
 
