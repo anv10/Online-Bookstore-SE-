@@ -5,6 +5,11 @@ from django.contrib.auth.backends import ModelBackend
 class EmailOrPhoneBackend(ModelBackend):
     """Authenticate with either the email (case-insensitive) or the phone number."""
 
+    def user_can_authenticate(self, user):
+        # is_active is the primary switch; the timestamps are a second guard so a
+        # manually reactivated suspended/removed row still cannot sign in.
+        return super().user_can_authenticate(user) and not user.is_suspended and not user.is_removed
+
     def authenticate(self, request, username=None, password=None, **kwargs):
         if username is None:
             username = kwargs.get(get_user_model().USERNAME_FIELD)
