@@ -1,0 +1,6 @@
+{% extends 'base.html' %}
+{% block content %}
+<a class="backlink" href="{% url 'order_detail' invoice.order.pk %}">← Back to the order</a>
+{% include 'orders/_invoice_body.html' %}
+<p><a class="button" href="{% url 'invoice_download' invoice.order.pk %}">Download invoice</a></p>
+{% endblock %}

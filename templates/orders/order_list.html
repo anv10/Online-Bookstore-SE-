@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="section-head"><div><p class="eyebrow">YOUR ORDERS</p><h1>What you've bought.</h1></div></div>
+{% if orders %}
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>Order</th><th>Date</th><th>Status</th><th>Total</th><th></th></tr></thead>
+    <tbody>
+    {% for order in orders %}
+      <tr>
+        <td>#{{ order.pk }}</td>
+        <td>{{ order.created_at|date:"j M Y" }}</td>
+        <td>{{ order.get_status_display }}</td>
+        <td>₹{{ order.total }}</td>
+        <td><a href="{% url 'order_detail' order.pk %}">View</a></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty"><h2>No orders yet.</h2><p>Your orders will show up here once you check out.</p></div>
+{% endif %}
+{% endblock %}
