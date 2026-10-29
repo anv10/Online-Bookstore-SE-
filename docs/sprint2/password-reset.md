@@ -15,7 +15,7 @@ The link is built with Django's token generator. It works once, because setting 
 
 - Phone-only accounts get no message: there is no SMS gateway. The "email or phone" criterion is therefore met for accounts that have an email. Recorded as a deviation on issue #3.
 - The request page has no rate limit yet.
-- The email is sent during the request.
+- The email is sent during the request. If sending fails the error is logged and the user still sees the normal "check your email" page.
 
 ## Test-plan mapping
 

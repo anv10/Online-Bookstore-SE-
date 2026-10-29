@@ -39,6 +39,12 @@ class PasswordResetTests(TestCase):
         self.assertRedirects(response, reverse("password_reset_done"))
         self.assertEqual(len(mail.outbox), 0)
 
+    def test_mail_failure_gives_same_reply_as_unknown_account(self):
+        with mock.patch("accounts.views.send_mail", side_effect=OSError("smtp down")):
+            with self.assertLogs("accounts.views", level="ERROR"):
+                response = self.client.post(self.request_url, {"identifier": "reader@example.com"})
+        self.assertRedirects(response, reverse("password_reset_done"))
+
     def test_phone_only_account_gets_no_mail(self):
         User.objects.create_user(password="x-pass-123", phone="+15550222")
         self.client.post(self.request_url, {"identifier": "+15550222"})

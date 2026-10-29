@@ -1,3 +1,5 @@
+import logging
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView, LogoutView
@@ -10,6 +12,8 @@ from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 
 from .forms import LoginForm, PasswordResetRequestForm, RegistrationForm, SetNewPasswordForm
 from .models import User
+
+logger = logging.getLogger(__name__)
 
 
 def register(request):
@@ -47,12 +51,16 @@ def password_reset_request(request):
             uid = urlsafe_base64_encode(force_bytes(user.pk))
             token = default_token_generator.make_token(user)
             link = request.build_absolute_uri(reverse("password_reset_confirm", args=[uid, token]))
-            send_mail(
-                "Reset your password",
-                f"Use this link to choose a new password. It works once and expires soon:\n{link}",
-                None,
-                [user.email],
-            )
+            try:
+                send_mail(
+                    "Reset your password",
+                    f"Use this link to choose a new password. It works once and expires soon:\n{link}",
+                    None,
+                    [user.email],
+                )
+            except Exception:
+                # Same reply as for an unknown account, so a mail outage does not reveal who has one.
+                logger.exception("Could not send password reset email for user %s", user.pk)
         return redirect("password_reset_done")
     return render(request, "accounts/password_reset_request.html", {"form": form})
 
