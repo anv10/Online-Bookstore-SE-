@@ -24,3 +24,20 @@ class OrderItem(models.Model):
     book = models.ForeignKey("catalog.Book", on_delete=models.PROTECT)
     quantity = models.PositiveIntegerField()
     unit_price = models.DecimalField(max_digits=8, decimal_places=2)
+
+
+class OrderConfirmation(models.Model):
+    """Tracks the confirmation email for one order so a failed send can be retried."""
+
+    class State(models.TextChoices):
+        PENDING = "pending", "Pending"
+        SENT = "sent", "Sent"
+        SKIPPED = "skipped", "Skipped (no email address)"
+        FAILED = "failed", "Failed"
+
+    order = models.OneToOneField(Order, on_delete=models.CASCADE, related_name="confirmation")
+    state = models.CharField(max_length=10, choices=State.choices, default=State.PENDING, db_index=True)
+    attempts = models.PositiveSmallIntegerField(default=0)
+    last_error = models.CharField(max_length=100, blank=True)
+    sent_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
