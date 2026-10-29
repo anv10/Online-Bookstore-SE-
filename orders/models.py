@@ -1,6 +1,8 @@
 from django.conf import settings
 from django.db import models
 
+from bookstore.fields import EncryptedTextField
+
 
 class Order(models.Model):
     class Status(models.TextChoices):
@@ -12,7 +14,7 @@ class Order(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="orders")
     status = models.CharField(max_length=10, choices=Status.choices, default=Status.PENDING)
     total = models.DecimalField(max_digits=10, decimal_places=2)
-    shipping_address = models.TextField()
+    shipping_address = EncryptedTextField()
     created_at = models.DateTimeField(auto_now_add=True)
 
 

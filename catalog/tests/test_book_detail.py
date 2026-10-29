@@ -46,8 +46,14 @@ class BookDetailTests(TestCase):
         self.assertContains(response, "disabled")
         self.assertNotContains(response, "Add to cart")
 
-    def test_in_stock_shows_add_to_cart(self):
+    def test_in_stock_shows_add_to_cart_for_logged_in_buyer(self):
+        self.client.force_login(User.objects.create_user("buyer@example.com", "pw"))
         self.assertContains(self.get(), "Add to cart")
+
+    def test_in_stock_asks_anonymous_visitors_to_log_in(self):
+        response = self.get()
+        self.assertContains(response, "Log in to buy")
+        self.assertNotContains(response, "Add to cart")
 
     def test_average_rating_and_reviews(self):
         first = User.objects.create_user("a@example.com", "pw", full_name="Asha")
