@@ -12,7 +12,7 @@ from . import checkout as checkout_service
 from .forms import CheckoutForm
 from .models import Order
 
-INVOICE_STATUSES = (Order.Status.PAID, Order.Status.SHIPPED)
+INVOICE_STATUSES = (Order.Status.PAID, Order.Status.SHIPPED, Order.Status.DELIVERED)
 
 
 def _last_address(user):
