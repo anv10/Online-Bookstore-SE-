@@ -10,7 +10,17 @@ from django.views.decorators.http import require_POST
 from .models import Order
 
 # Unpaid orders have nothing to fulfil yet, so sellers never see them.
-SELLER_VISIBLE = (Order.Status.PAID, Order.Status.SHIPPED, Order.Status.DELIVERED, Order.Status.CANCELLED)
+SELLER_VISIBLE = (
+    Order.Status.PAID,
+    Order.Status.SHIPPED,
+    Order.Status.OUT_FOR_DELIVERY,
+    Order.Status.DELIVERED,
+    Order.Status.CANCELLED,
+)
+
+# Orders move Paid -> Shipped -> Out for delivery -> Delivered. A shipped order may also be
+# marked delivered directly, for sellers who hand the books over without a courier step.
+DELIVERABLE = (Order.Status.SHIPPED, Order.Status.OUT_FOR_DELIVERY)
 
 
 def _require_seller(request):
@@ -32,7 +42,8 @@ def _seller_order(order, user):
         "total": sum((item.unit_price * item.quantity for item in mine), Decimal("0")),
         "shared": len(mine) != len(items),
         "can_ship": order.status == Order.Status.PAID and len(mine) == len(items),
-        "can_deliver": order.status == Order.Status.SHIPPED and len(mine) == len(items),
+        "can_out_for_delivery": order.status == Order.Status.SHIPPED and len(mine) == len(items),
+        "can_deliver": order.status in DELIVERABLE and len(mine) == len(items),
     }
 
 
@@ -80,14 +91,36 @@ def seller_order_ship(request, order_id):
 
 @login_required
 @require_POST
-def seller_order_deliver(request, order_id):
-    """Record delivery so the buyer can review the books. Order tracking (#14) owns the full lifecycle UI."""
+def seller_order_out_for_delivery(request, order_id):
     _require_seller(request)
     get_object_or_404(_orders_with_my_books(request.user), pk=order_id)
     with transaction.atomic():
         order = Order.objects.select_for_update().prefetch_related("items__book").get(pk=order_id)
         row = _seller_order(order, request.user)
         if order.status != Order.Status.SHIPPED:
+            messages.error(request, "Only shipped orders can be marked as out for delivery.")
+        elif row["shared"]:
+            messages.error(
+                request,
+                "This order also contains books from other sellers, so it cannot be updated here.",
+            )
+        else:
+            order.status = Order.Status.OUT_FOR_DELIVERY
+            order.save(update_fields=["status"])
+            messages.success(request, f"Order #{order.pk} marked as out for delivery.")
+    return redirect("seller_order_detail", order_id=order_id)
+
+
+@login_required
+@require_POST
+def seller_order_deliver(request, order_id):
+    """Record delivery, which also lets the buyer review the books."""
+    _require_seller(request)
+    get_object_or_404(_orders_with_my_books(request.user), pk=order_id)
+    with transaction.atomic():
+        order = Order.objects.select_for_update().prefetch_related("items__book").get(pk=order_id)
+        row = _seller_order(order, request.user)
+        if order.status not in DELIVERABLE:
             messages.error(request, "Only shipped orders can be marked as delivered.")
         elif row["shared"]:
             messages.error(

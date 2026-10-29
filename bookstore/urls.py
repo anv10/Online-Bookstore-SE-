@@ -24,7 +24,13 @@ from bookstore.views import support
 from cart.views import cart_add, cart_detail, cart_remove, cart_update
 from catalog import moderation
 from catalog.views import book_detail, catalog, listing_add, listing_edit, listing_remove, seller_listings
-from orders.seller_views import seller_order_deliver, seller_order_detail, seller_order_ship, seller_orders
+from orders.seller_views import (
+    seller_order_deliver,
+    seller_order_detail,
+    seller_order_out_for_delivery,
+    seller_order_ship,
+    seller_orders,
+)
 from orders.views import checkout, invoice_download, invoice_view, order_confirmation, order_detail, order_list
 from reviews.views import submit_review
 from wishlist.views import wishlist_add, wishlist_detail, wishlist_remove, wishlist_to_cart
@@ -44,6 +50,11 @@ urlpatterns = [
     path("seller/orders/", seller_orders, name="seller_orders"),
     path("seller/orders/<int:order_id>/", seller_order_detail, name="seller_order_detail"),
     path("seller/orders/<int:order_id>/ship/", seller_order_ship, name="seller_order_ship"),
+    path(
+        "seller/orders/<int:order_id>/out-for-delivery/",
+        seller_order_out_for_delivery,
+        name="seller_order_out_for_delivery",
+    ),
     path("seller/orders/<int:order_id>/deliver/", seller_order_deliver, name="seller_order_deliver"),
     path("orders/", order_list, name="order_list"),
     path("orders/<int:order_id>/", order_detail, name="order_detail"),

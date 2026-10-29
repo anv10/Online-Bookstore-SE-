@@ -11,8 +11,14 @@ from cart.models import Cart
 from . import checkout as checkout_service
 from .forms import CheckoutForm
 from .models import Order
+from .tracking import tracking_steps
 
-INVOICE_STATUSES = (Order.Status.PAID, Order.Status.SHIPPED, Order.Status.DELIVERED)
+INVOICE_STATUSES = (
+    Order.Status.PAID,
+    Order.Status.SHIPPED,
+    Order.Status.OUT_FOR_DELIVERY,
+    Order.Status.DELIVERED,
+)
 
 
 def _last_address(user):
@@ -102,6 +108,7 @@ def order_detail(request, order_id):
     order = _own_order_or_404(request, order_id)
     context = build_invoice(order)
     context["has_invoice"] = order.status in INVOICE_STATUSES
+    context["tracking"] = tracking_steps(order)
     return render(request, "orders/order_detail.html", context)
 
 

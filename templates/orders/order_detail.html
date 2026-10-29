@@ -5,6 +5,28 @@
   {% if has_invoice %}<a class="button" href="{% url 'invoice_view' order.pk %}">View invoice</a>{% endif %}
 </div>
 <p class="muted">Placed on {{ order.created_at|date:"j M Y" }}</p>
+{% if tracking %}
+<ol class="tracker" aria-label="Order progress">
+  {% for step in tracking %}
+  <li class="tracker-{{ step.state }}"{% if step.state == 'current' %} aria-current="step"{% endif %}>
+    <span class="tracker-dot">{% if step.state == 'done' %}✓{% else %}{{ forloop.counter }}{% endif %}</span>
+    <span>{{ step.label }}</span>
+  </li>
+  {% endfor %}
+</ol>
+<style>
+  .tracker { list-style: none; display: flex; gap: 1.5rem; padding: 0; margin: 1.5rem 0; flex-wrap: wrap; }
+  .tracker li { display: flex; align-items: center; gap: .5rem; color: var(--muted); }
+  .tracker-dot { display: inline-flex; width: 1.8rem; height: 1.8rem; border-radius: 50%; align-items: center;
+    justify-content: center; border: 1px solid var(--line); background: #fff; font-size: .85rem; }
+  .tracker-done, .tracker-current { color: var(--ink); }
+  .tracker-done .tracker-dot { background: var(--green); border-color: var(--green); color: #fff; }
+  .tracker-current { font-weight: bold; }
+  .tracker-current .tracker-dot { border-color: var(--green); border-width: 2px; }
+</style>
+{% elif order.status == 'cancelled' %}
+<p class="notice error">This order was cancelled.</p>
+{% endif %}
 <div class="table-wrap">
   <table>
     <thead><tr><th>Item</th><th>Price</th><th>Copies</th><th>Amount</th></tr></thead>
@@ -17,5 +39,5 @@
   </table>
 </div>
 <p>Ship to: {{ order.shipping_address|linebreaksbr }}</p>
-{% if not has_invoice %}<p class="muted">The invoice is available once the order is paid.</p>{% endif %}
+{% if not has_invoice and order.status != 'cancelled' %}<p class="muted">The invoice is available once the order is paid.</p>{% endif %}
 {% endblock %}
