@@ -22,6 +22,7 @@ from django.urls import include, path
 
 from catalog import moderation
 from catalog.views import book_detail, catalog, listing_add, listing_edit, listing_remove, seller_listings
+from orders.seller_views import seller_order_detail, seller_order_ship, seller_orders
 
 urlpatterns = [
     path("", catalog, name="catalog"),
@@ -33,6 +34,9 @@ urlpatterns = [
     path("moderation/verify/", moderation.verify, name="moderation_verify"),
     path("moderation/", moderation.queue, name="moderation_queue"),
     path("moderation/<int:pk>/", moderation.decide, name="moderation_decide"),
+    path("seller/orders/", seller_orders, name="seller_orders"),
+    path("seller/orders/<int:order_id>/", seller_order_detail, name="seller_order_detail"),
+    path("seller/orders/<int:order_id>/ship/", seller_order_ship, name="seller_order_ship"),
     path("admin/", admin.site.urls),
     path("accounts/", include("accounts.urls")),
 ]
