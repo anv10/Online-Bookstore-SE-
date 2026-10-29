@@ -25,6 +25,7 @@
       <input type="hidden" name="next" value="{{ next }}">
       <button class="button">Log in</button>
     </form>
+    <p><a href="{% url 'password_reset' %}">Forgot your password?</a></p>
     <p>New here? <a href="{% url 'register' %}">Create an account</a>.</p>
     <p class="muted">Need help? <a href="{% url 'support' %}">Contact customer support</a>.</p>
   </div>

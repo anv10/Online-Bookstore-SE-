@@ -60,6 +60,9 @@ LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "catalog"
 LOGOUT_REDIRECT_URL = "login"
 
+# Password reset links stop working after one hour.
+PASSWORD_RESET_TIMEOUT = 3600
+
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",

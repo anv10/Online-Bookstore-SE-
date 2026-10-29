@@ -72,3 +72,41 @@ class LoginForm(AuthenticationForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["username"].label = "Email or phone"
+
+
+class PasswordResetRequestForm(forms.Form):
+    identifier = forms.CharField(label="Email or phone number", max_length=254)
+
+    def get_user(self):
+        value = self.cleaned_data["identifier"].strip()
+        if "@" in value:
+            return User.objects.filter(email__iexact=value, is_active=True).first()
+        return User.objects.filter(phone=re.sub(r"[\s-]", "", value), is_active=True).first()
+
+
+class SetNewPasswordForm(forms.Form):
+    password = forms.CharField(widget=forms.PasswordInput, strip=False, label="New password")
+    confirm_password = forms.CharField(widget=forms.PasswordInput, strip=False)
+
+    def __init__(self, user, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user = user
+
+    def clean(self):
+        data = super().clean()
+        password = data.get("password")
+        if password and password != data.get("confirm_password"):
+            self.add_error("confirm_password", "Passwords do not match.")
+        elif password:
+            try:
+                password_validation.validate_password(password, self.user)
+                if not (re.search(r"[A-Za-z]", password) and re.search(r"\d", password)):
+                    raise ValidationError("Password must contain at least one letter and one digit.")
+            except ValidationError as e:
+                self.add_error("password", e)
+        return data
+
+    def save(self):
+        self.user.set_password(self.cleaned_data["password"])
+        self.user.save(update_fields=["password"])
+        return self.user
