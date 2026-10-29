@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "cart",
     "orders",
     "reviews",
+    "wishlist",
 ]
 
 PASSWORD_HASHERS = [

@@ -36,6 +36,12 @@
     {% else %}
       <button type="button" class="button" disabled>Out of stock</button>
     {% endif %}
+    {% if user.is_authenticated %}
+      <form method="post" action="{% url 'wishlist_add' book.pk %}">
+        {% csrf_token %}
+        <button class="button">Add to wishlist</button>
+      </form>
+    {% endif %}
   </div>
 </section>
 <section class="reviews" aria-label="Reviews">
