@@ -178,6 +178,8 @@ EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "1") == "1"
 EMAIL_TIMEOUT = 10
 DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "bookstore@localhost")
 
+# Customer support address shown in the footer and on the support page (NFR-12).
+SUPPORT_EMAIL = os.environ.get("SUPPORT_EMAIL", "support@chapterandco.example")
 # Checkout (FR-5). Prices are in rupees. Card data is never stored; the sandbox
 # gateway is the development/test provider until issue #10 adds the hosted one.
 CHECKOUT_TAX_RATE = Decimal(os.environ.get("CHECKOUT_TAX_RATE", "0.05"))

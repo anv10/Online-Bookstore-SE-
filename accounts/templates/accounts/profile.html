@@ -1,18 +1,20 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>My account - Online Bookstore</title>
-</head>
-<body>
-  <main>
-    <h1>My account</h1>
-    <p>Signed in as {{ user.email|default:user.phone }}</p>
-    <form method="post" action="{% url 'logout' %}">
-      {% csrf_token %}
-      <button type="submit">Log out</button>
-    </form>
-  </main>
-</body>
-</html>
+{% extends 'base.html' %}
+{% block content %}
+<div class="section-head">
+  <div><p class="eyebrow">YOUR ACCOUNT</p><h1>My account.</h1></div>
+</div>
+<div class="panel editor">
+  <p>Signed in as <strong>{{ user.email|default:user.phone }}</strong></p>
+  {% if user.full_name %}<p>{{ user.full_name }}</p>{% endif %}
+  <p class="muted">Joined {{ user.date_joined|date:"j M Y" }}</p>
+  <p>
+    <a class="button small" href="{% url 'order_list' %}">Your orders</a>
+    <a class="button small" href="{% url 'cart' %}">Your cart</a>
+  </p>
+  <form method="post" action="{% url 'logout' %}">
+    {% csrf_token %}
+    <button class="button">Log out</button>
+  </form>
+  <p class="muted">Need help with an order or your account? <a href="{% url 'support' %}">Contact customer support</a>.</p>
+</div>
+{% endblock %}
