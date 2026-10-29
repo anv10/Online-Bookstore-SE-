@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block content %}
+<a class="backlink" href="{% url 'user_admin_list' %}">← All accounts</a>
+<div class="section-head">
+  <div>
+    <p class="eyebrow">ACCOUNT #{{ target.pk }}</p>
+    <h1>{{ target.full_name|default:target.email|default:target.phone }}</h1>
+  </div>
+  <span class="badge">{{ target.moderation_status|capfirst }}</span>
+</div>
+<dl>
+  <dt>Email</dt><dd>{{ target.email|default:"Not set" }}</dd>
+  <dt>Phone</dt><dd>{{ target.phone|default:"Not set" }}</dd>
+  <dt>Joined</dt><dd>{{ target.date_joined|date:"j M Y, H:i" }}</dd>
+  {% if target.suspended_at %}<dt>Suspended</dt><dd>{{ target.suspended_at|date:"j M Y, H:i" }}</dd>{% endif %}
+  {% if target.removed_at %}<dt>Removed</dt><dd>{{ target.removed_at|date:"j M Y, H:i" }}</dd>{% endif %}
+</dl>
+
+<section class="panel">
+  <h2>Moderation action</h2>
+  {{ form.non_field_errors }}
+  {% if target.is_removed %}
+    <p class="muted">This account was removed. Its order, review and listing history is retained.</p>
+  {% elif target.pk == user.pk %}
+    <p class="muted">You cannot suspend or remove your own account.</p>
+  {% else %}
+    <p class="muted">Suspending or removing an account blocks login immediately and hides the user's active listings. The account row is kept so existing orders and reviews stay intact.</p>
+    <form method="post">
+      {% csrf_token %}
+      <p>
+        <label for="{{ form.action.id_for_label }}">Action</label>
+        {{ form.action }}
+        {{ form.action.errors }}
+      </p>
+      <p>
+        <label for="{{ form.reason.id_for_label }}">Reason</label>
+        {{ form.reason }}
+        {{ form.reason.errors }}
+      </p>
+      <button class="button">Apply action</button>
+    </form>
+  {% endif %}
+</section>
+
+<h2>Audit history</h2>
+{% if actions %}
+<div class="table-wrap">
+  <table>
+    <thead><tr><th>When</th><th>Admin</th><th>Action</th><th>Reason</th></tr></thead>
+    <tbody>
+    {% for entry in actions %}
+      <tr>
+        <td>{{ entry.created_at|date:"j M Y, H:i" }}</td>
+        <td>{{ entry.admin.email|default:entry.admin.phone }}</td>
+        <td>{{ entry.get_action_display }}</td>
+        <td>{{ entry.reason }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<p class="muted">No moderation actions recorded for this account.</p>
+{% endif %}
+{% endblock %}
