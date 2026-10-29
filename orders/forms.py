@@ -67,3 +67,12 @@ class CheckoutForm(forms.Form):
             expiry=self.cleaned_data["card_expiry"],
             cvc=self.cleaned_data["card_cvc"],
         )
+
+
+class HostedCheckoutForm(CheckoutForm):
+    """Address only: the card is entered on the gateway's own page, never on this site."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for name in ("card_number", "card_expiry", "card_cvc"):
+            del self.fields[name]

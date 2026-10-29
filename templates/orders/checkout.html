@@ -33,8 +33,13 @@
     <form method="post" novalidate>
       {% csrf_token %}
       {{ form.as_p }}
+      {% if hosted %}
+      <p class="helptext">You will pay on Stripe's secure page. Your card details go to Stripe, never to this site, and are never stored here.</p>
+      <button class="button">Continue to payment · ₹{{ summary.total }}</button>
+      {% else %}
       <p class="helptext">Sandbox card for the demo: 4242 4242 4242 4242, any future expiry, any three digits. A card ending 0002 is declined. Card details are never stored.</p>
       <button class="button">Pay ₹{{ summary.total }}</button>
+      {% endif %}
     </form>
   </section>
 </div>

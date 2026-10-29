@@ -189,4 +189,6 @@ SUPPORT_EMAIL = os.environ.get("SUPPORT_EMAIL", "support@chapterandco.example")
 CHECKOUT_TAX_RATE = Decimal(os.environ.get("CHECKOUT_TAX_RATE", "0.05"))
 CHECKOUT_SHIPPING_FLAT = Decimal(os.environ.get("CHECKOUT_SHIPPING_FLAT", "50.00"))
 PAYMENT_GATEWAY = os.environ.get("PAYMENT_GATEWAY", "sandbox")
+# "stripe" sends the buyer to Stripe Checkout (hosted page). Use a test-mode key (sk_test_...) outside production.
+STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY", "")
 PAYMENT_SANDBOX_DECLINE_CARDS = ["4000000000000002"]
