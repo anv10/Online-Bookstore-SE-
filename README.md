@@ -46,7 +46,7 @@ The test database is created automatically, so the `bookstore` role needs `CREAT
 
 | App | Tables |
 | --- | --- |
-| accounts | `User` (email, optional unique phone, hashed password) |
+| accounts | `User` (email, optional unique phone, hashed password, suspension/removal timestamps), `AccountAction` (audit log) |
 | catalog | `Book` (title, author, ISBN, category, price, stock) |
 | cart | `Cart` (one per user), `CartItem` |
 | orders | `Order`, `OrderItem` (no card data is ever stored) |
@@ -69,6 +69,16 @@ Every page links to `/support/`, which publishes the support email address and a
 24-hour first-response target (NFR-12). Set `SUPPORT_EMAIL` in the environment to
 a monitored inbox before deployment. See
 [support channel](docs/sprint2/support-channel.md) for configuration and limits.
+## Admin user account moderation
+
+Account administrators use **Users** in the navigation to search accounts and
+suspend or remove them with a required reason. Suspended and removed accounts
+cannot log in, existing sessions stop working, and a seller's listings disappear
+from the catalogue. Every action is recorded in an audit table; removal is soft
+so order and review history stays intact. Access requires staff status and
+`accounts.change_user`. See
+[user account moderation](docs/sprint2/user-account-moderation.md) for the
+workflow, test-plan mapping and remaining checks.
 ## Ratings and reviews
 
 Buyers can rate a book from 1 to 5 and add optional text after an order containing
