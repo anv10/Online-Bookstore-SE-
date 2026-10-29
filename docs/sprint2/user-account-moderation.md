@@ -13,7 +13,7 @@ Account administrators need an active account with `is_staff=True` and the `acco
 3. Open an account to see its status, join date and complete moderation history.
 4. Choose **Suspended** or **Removed**, enter a reason and submit.
 
-Suspending or removing an account sets `is_active=False`, so existing sessions stop authenticating on their next request and future logins fail with the same generic error as any other invalid credential. Suspending also hides every active listing owned by that seller from search, details pages and cart additions.
+Suspending or removing an account sets `is_active=False`, so existing sessions stop authenticating on their next request and future logins fail with the same generic error as any other invalid credential. The authentication backend also checks the suspension/removal timestamps, so a manually reactivated row cannot bypass moderation. Suspending also hides every active listing owned by that seller from search, details pages and cart additions.
 
 Removal is a soft delete: the user row, listings, orders and reviews stay because order history references them. Removed accounts cannot be acted on again. An administrator cannot moderate their own account, and only a superuser can moderate another superuser.
 
