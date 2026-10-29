@@ -106,3 +106,9 @@ remove them with a reason and an audit record. Access requires staff status,
 variables in `.env.example` before use. See
 [moderation setup and validation](docs/sprint2/admin-moderation.md) for provisioning,
 security scope, test-plan mappings and remaining deployment checks.
+
+## Order confirmation emails
+
+When an order is placed, the buyer gets an email with the order number, the items and the total (the shipping address is not included). It is sent after the order has been saved, so an email problem can never block or undo an order. Buyers who signed up with a phone number only have no email address and are skipped.
+
+If sending fails, the error type is logged and the confirmation stays pending. Run `python manage.py retry_order_confirmations` to send pending ones again, for example every few minutes from cron. A confirmation is given up after 5 failed attempts. This uses the same SMTP settings as the admin verification email (see `.env.example`).
