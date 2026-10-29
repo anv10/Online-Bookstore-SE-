@@ -7,7 +7,7 @@ from django.template.loader import render_to_string
 
 from .models import Order
 
-INVOICE_STATUSES = (Order.Status.PAID, Order.Status.SHIPPED)
+INVOICE_STATUSES = (Order.Status.PAID, Order.Status.SHIPPED, Order.Status.DELIVERED)
 
 
 def _own_order_or_404(request, order_id):
