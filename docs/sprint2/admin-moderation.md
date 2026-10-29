@@ -39,4 +39,4 @@ Original submitted test plan statuses remain Pending. This addendum reports auto
 - No flagged-report/reject workflow is added; the issue's Pending/Approve/Suspend/Remove workflow is implemented.
 - Staff provisioning uses Django staff + permission checks, matching existing permission-based seller provisioning; public users cannot grant themselves these privileges.
 - Real SMTP delivery, PostgreSQL migrations/tests/locking, Chrome/Firefox/Safari/Edge and mobile checks, deployment TLS, protected audit storage and human owner review remain unverified. Keep the PR draft until required validation and review are complete.
-- AI-assisted implementation. Assigned team member submission and human review remain separate steps; no human review is represented by automated checks.
+- Assigned team member submission and human review remain separate steps; automated checks do not represent a human review.
