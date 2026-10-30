@@ -25,7 +25,7 @@ from cart.views import cart_add, cart_detail, cart_remove, cart_update
 from catalog import moderation
 from catalog.views import book_detail, catalog, listing_add, listing_edit, listing_remove, seller_listings
 from orders.seller_views import seller_order_deliver, seller_order_detail, seller_order_ship, seller_orders
-from orders.views import checkout, invoice_download, invoice_view, order_confirmation, order_detail, order_list
+from orders.views import checkout, checkout_cancel, checkout_complete, invoice_download, invoice_view, order_confirmation, order_detail, order_list
 from reviews.views import submit_review
 from wishlist.views import wishlist_add, wishlist_detail, wishlist_remove, wishlist_to_cart
 
@@ -58,6 +58,8 @@ urlpatterns = [
     path("wishlist/items/<int:item_id>/remove/", wishlist_remove, name="wishlist_remove"),
     path("wishlist/items/<int:item_id>/to-cart/", wishlist_to_cart, name="wishlist_to_cart"),
     path("checkout/", checkout, name="checkout"),
+    path("checkout/complete/", checkout_complete, name="checkout_complete"),
+    path("checkout/cancel/", checkout_cancel, name="checkout_cancel"),
     path("orders/<int:pk>/confirmation/", order_confirmation, name="order_confirmation"),
     path("admin/", admin.site.urls),
     path("accounts/", include("accounts.urls")),
