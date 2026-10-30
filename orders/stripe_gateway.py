@@ -58,8 +58,12 @@ def _request(method, path, params=None):
         raise StripeError("The payment provider could not be reached.") from error
 
 
-def create_checkout_session(pending_id, email, items, success_url, cancel_url):
-    """Start a hosted payment. ``items`` is a list of (name, amount in paise, quantity)."""
+def create_checkout_session(pending_id, email, items, success_url, cancel_url, discount=None):
+    """Start a hosted payment. ``items`` is a list of (name, amount in paise, quantity).
+
+    ``discount`` is an optional (coupon code, amount in paise) taken off the whole
+    payment, since a line item cannot be negative.
+    """
     params = {
         "mode": "payment",
         "success_url": success_url,
@@ -75,6 +79,15 @@ def create_checkout_session(pending_id, email, items, success_url, cancel_url):
         params[f"{prefix}[price_data][currency]"] = CURRENCY
         params[f"{prefix}[price_data][unit_amount]"] = str(amount)
         params[f"{prefix}[price_data][product_data][name]"] = name
+    if discount and discount[1] > 0:
+        stripe_coupon = _request(
+            "POST",
+            "/coupons",
+            {"amount_off": str(discount[1]), "currency": CURRENCY, "duration": "once", "name": discount[0][:40]},
+        )
+        if not stripe_coupon.get("id"):
+            raise StripeError("The payment provider sent an unexpected answer.")
+        params["discounts[0][coupon]"] = stripe_coupon["id"]
     session = _request("POST", "/checkout/sessions", params)
     if not session.get("id") or not session.get("url"):
         raise StripeError("The payment provider sent an unexpected answer.")

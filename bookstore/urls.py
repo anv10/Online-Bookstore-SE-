@@ -31,7 +31,7 @@ from orders.seller_views import (
     seller_order_ship,
     seller_orders,
 )
-from orders.views import checkout, checkout_cancel, checkout_complete, invoice_download, invoice_view, order_confirmation, order_detail, order_list
+from orders.views import apply_coupon, checkout, checkout_cancel, checkout_complete, invoice_download, invoice_view, order_confirmation, order_detail, order_list, remove_coupon
 from reviews.views import submit_review
 from wishlist.views import wishlist_add, wishlist_detail, wishlist_remove, wishlist_to_cart
 
@@ -69,6 +69,8 @@ urlpatterns = [
     path("wishlist/items/<int:item_id>/remove/", wishlist_remove, name="wishlist_remove"),
     path("wishlist/items/<int:item_id>/to-cart/", wishlist_to_cart, name="wishlist_to_cart"),
     path("checkout/", checkout, name="checkout"),
+    path("checkout/coupon/", apply_coupon, name="apply_coupon"),
+    path("checkout/coupon/remove/", remove_coupon, name="remove_coupon"),
     path("checkout/complete/", checkout_complete, name="checkout_complete"),
     path("checkout/cancel/", checkout_cancel, name="checkout_cancel"),
     path("orders/<int:pk>/confirmation/", order_confirmation, name="order_confirmation"),

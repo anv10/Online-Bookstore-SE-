@@ -7,11 +7,12 @@ from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
-from django.views.decorators.http import require_GET
+from django.views.decorators.http import require_GET, require_POST
 
 from cart.models import Cart
 
 from . import checkout as checkout_service
+from . import coupons
 from .forms import CheckoutForm, HostedCheckoutForm
 from .models import Order
 from .tracking import tracking_steps
@@ -36,7 +37,13 @@ def _last_address(user):
 
 @login_required
 def checkout(request):
-    summary = checkout_service.build_summary(Cart.objects.filter(user=request.user).first())
+    coupon, coupon_problem = coupons.remembered(request.session)
+    if coupon_problem:
+        messages.error(request, coupon_problem)
+        if request.method == "POST":
+            # The total the buyer approved included this coupon, so never charge a different one.
+            return redirect("checkout")
+    summary = checkout_service.build_summary(Cart.objects.filter(user=request.user).first(), coupon)
     if not summary["lines"]:
         messages.error(request, "Your cart is empty. Add a book before checking out.")
         return redirect("cart")
@@ -54,17 +61,46 @@ def checkout(request):
             return _start_hosted_payment(request, form, summary)
         try:
             order = checkout_service.place_order(
-                request.user, form.cleaned_data["shipping_address"], form.card()
+                request.user,
+                form.cleaned_data["shipping_address"],
+                form.card(),
+                coupon_code=coupon.code if coupon else "",
             )
+        except coupons.CouponError as error:
+            request.session.pop(coupons.SESSION_KEY, None)
+            messages.error(request, str(error))
+            return redirect("checkout")
         except checkout_service.PaymentDeclined as error:
             form.add_error(None, str(error))
         except checkout_service.CheckoutError as error:
             messages.error(request, str(error))
             return redirect("cart")
         else:
+            request.session.pop(coupons.SESSION_KEY, None)
             messages.success(request, f"Payment received. Order #{order.pk} is confirmed.")
             return redirect("order_confirmation", pk=order.pk)
     return render(request, "orders/checkout.html", {"form": form, "summary": summary, "hosted": hosted})
+
+
+@login_required
+@require_POST
+def apply_coupon(request):
+    try:
+        coupon = coupons.find(request.POST.get("code", ""))
+    except coupons.CouponError as error:
+        messages.error(request, str(error))
+    else:
+        request.session[coupons.SESSION_KEY] = coupon.code
+        messages.success(request, f"Coupon {coupon.code} applied.")
+    return redirect("checkout")
+
+
+@login_required
+@require_POST
+def remove_coupon(request):
+    request.session.pop(coupons.SESSION_KEY, None)
+    messages.success(request, "Coupon removed.")
+    return redirect("checkout")
 
 
 def _start_hosted_payment(request, form, summary):
@@ -72,8 +108,16 @@ def _start_hosted_payment(request, form, summary):
     cancel_url = request.build_absolute_uri(reverse("checkout_cancel"))
     try:
         url = checkout_service.start_hosted_payment(
-            request.user, form.cleaned_data["shipping_address"], success_url, cancel_url
+            request.user,
+            form.cleaned_data["shipping_address"],
+            success_url,
+            cancel_url,
+            coupon_code=summary["coupon"].code if summary["coupon"] else "",
         )
+    except coupons.CouponError as error:
+        request.session.pop(coupons.SESSION_KEY, None)
+        messages.error(request, str(error))
+        return redirect("checkout")
     except checkout_service.CheckoutError as error:
         messages.error(request, str(error))
         return render(
@@ -91,6 +135,7 @@ def checkout_complete(request):
     except checkout_service.CheckoutError as error:
         messages.error(request, str(error))
         return redirect("cart")
+    request.session.pop(coupons.SESSION_KEY, None)
     messages.success(request, f"Payment received. Order #{order.pk} is confirmed.")
     return redirect("order_confirmation", pk=order.pk)
 
@@ -130,13 +175,20 @@ def build_invoice(order):
         subtotal += line_total
         lines.append({"item": item, "title": item.book.title, "line_total": line_total})
     difference = order.total - subtotal
+    if order.discount:
+        discounts = order.discount
+        taxes = max(difference + order.discount, Decimal("0"))
+    else:
+        discounts = max(-difference, Decimal("0"))
+        taxes = max(difference, Decimal("0"))
     return {
         "order": order,
         "number": f"INV-{order.pk:06d}",
         "lines": lines,
         "subtotal": subtotal,
-        "discounts": max(-difference, Decimal("0")),
-        "taxes": max(difference, Decimal("0")),
+        "discounts": discounts,
+        "taxes": taxes,
+        "coupon_code": order.coupon_code,
         "total": order.total,
     }
 
