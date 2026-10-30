@@ -42,11 +42,12 @@ class Order(models.Model):
         PENDING = "pending", "Placed"
         PAID = "paid", "Paid"
         SHIPPED = "shipped", "Shipped"
+        OUT_FOR_DELIVERY = "out_for_delivery", "Out for delivery"
         DELIVERED = "delivered", "Delivered"
         CANCELLED = "cancelled", "Cancelled"
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="orders")
-    status = models.CharField(max_length=10, choices=Status.choices, default=Status.PENDING)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
     total = models.DecimalField(max_digits=10, decimal_places=2)
     discount = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
     coupon_code = models.CharField(max_length=40, blank=True)

@@ -23,13 +23,19 @@
   <button class="button">Mark as shipped</button>
 </form>
 {% elif can_deliver %}
+{% if can_out_for_delivery %}
+<form method="post" action="{% url 'seller_order_out_for_delivery' order.pk %}">
+  {% csrf_token %}
+  <button class="button">Mark as out for delivery</button>
+</form>
+{% endif %}
 <form method="post" action="{% url 'seller_order_deliver' order.pk %}">
   {% csrf_token %}
-  <button class="button">Mark as delivered</button>
+  <button class="{% if can_out_for_delivery %}small link{% else %}button{% endif %}">Mark as delivered</button>
 </form>
 {% elif order.status == 'paid' %}
 <p class="muted">An order with books from several sellers cannot be marked as shipped here yet.</p>
-{% elif order.status == 'shipped' %}
-<p class="muted">An order with books from several sellers cannot be marked as delivered here yet.</p>
+{% elif order.status == 'shipped' or order.status == 'out_for_delivery' %}
+<p class="muted">An order with books from several sellers cannot be updated here yet.</p>
 {% endif %}
 {% endblock %}

@@ -8,7 +8,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('orders', '0006_pendingpayment'),
+        ('orders', '0007_order_out_for_delivery'),
     ]
 
     operations = [
