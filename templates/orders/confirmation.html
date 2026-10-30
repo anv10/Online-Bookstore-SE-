@@ -18,6 +18,7 @@
     </table>
   </div>
   <dl>
+    {% if order.discount %}<dt>Discount ({{ order.coupon_code }})</dt><dd>−₹{{ order.discount }}</dd>{% endif %}
     <dt>Total paid</dt><dd><strong>₹{{ order.total }}</strong></dd>
     <dt>Status</dt><dd>{{ order.get_status_display }}</dd>
     <dt>Shipping to</dt><dd>{{ order.shipping_address|linebreaksbr }}</dd>

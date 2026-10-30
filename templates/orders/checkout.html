@@ -23,10 +23,25 @@
     </div>
     <dl>
       <dt>Subtotal</dt><dd>₹{{ summary.subtotal }}</dd>
+      {% if summary.coupon %}<dt>Discount ({{ summary.coupon.code }})</dt><dd>−₹{{ summary.discount }}</dd>{% endif %}
       <dt>Tax</dt><dd>₹{{ summary.tax }}</dd>
       <dt>Shipping</dt><dd>₹{{ summary.shipping }}</dd>
       <dt>Total</dt><dd><strong>₹{{ summary.total }}</strong></dd>
     </dl>
+    {% if summary.coupon %}
+    <form method="post" action="{% url 'remove_coupon' %}">
+      {% csrf_token %}
+      <p class="helptext">Coupon {{ summary.coupon.code }} applied.</p>
+      <button class="button secondary">Remove coupon</button>
+    </form>
+    {% else %}
+    <form method="post" action="{% url 'apply_coupon' %}">
+      {% csrf_token %}
+      <p><label for="coupon-code">Coupon code</label>
+      <input type="text" id="coupon-code" name="code" maxlength="40" autocomplete="off" placeholder="e.g. WELCOME10"></p>
+      <button class="button secondary">Apply coupon</button>
+    </form>
+    {% endif %}
   </section>
   <section class="panel" aria-label="Shipping address and payment">
     <h2>Shipping and payment</h2>

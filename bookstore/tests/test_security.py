@@ -126,7 +126,8 @@ class ExistingAddressMigrationTests(TransactionTestCase):
         self.assertNotIn("1 Main St", raw[0])
         self.assertEqual(raw[1], already)
         self.assertEqual(
-            [o.shipping_address for o in Order.objects.order_by("id")], ["1 Main St", "2 Side St"]
+            list(Order.objects.order_by("id").values_list("shipping_address", flat=True)),
+            ["1 Main St", "2 Side St"],
         )
 
     def test_migration_can_be_reversed(self):

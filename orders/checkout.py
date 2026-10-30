@@ -1,6 +1,6 @@
 """Cart review and order placement for checkout (FR-5).
 
-Totals are subtotal + tax + shipping, all in rupees, so the figure the buyer
+Totals are subtotal - coupon discount + tax + shipping, all in rupees, so the figure the buyer
 approves on the checkout page is the figure stored on the order. Stock is
 locked and re-checked inside the order transaction, and the order only exists
 once the gateway accepts the card.
@@ -16,8 +16,8 @@ from django.db.models import F
 from cart.models import Cart
 from catalog.models import Book
 
-from . import payments, stripe_gateway
-from .models import Order, OrderItem, PendingPayment
+from . import coupons, payments, stripe_gateway
+from .models import Coupon, Order, OrderItem, PendingPayment
 
 logger = logging.getLogger(__name__)
 
@@ -40,14 +40,22 @@ def is_buyable(book):
     return book.status == Book.Status.APPROVED and (book.seller is None or book.seller.is_active)
 
 
-def totals_for(subtotal):
+def totals_for(subtotal, discount=0):
+    """Tax is charged on the discounted subtotal; shipping is a flat fee."""
     subtotal = money(subtotal)
-    tax = money(subtotal * Decimal(settings.CHECKOUT_TAX_RATE))
+    discount = min(money(discount), subtotal)
+    tax = money((subtotal - discount) * Decimal(settings.CHECKOUT_TAX_RATE))
     shipping = money(settings.CHECKOUT_SHIPPING_FLAT) if subtotal else money(0)
-    return {"subtotal": subtotal, "tax": tax, "shipping": shipping, "total": money(subtotal + tax + shipping)}
+    return {
+        "subtotal": subtotal,
+        "discount": discount,
+        "tax": tax,
+        "shipping": shipping,
+        "total": money(subtotal - discount + tax + shipping),
+    }
 
 
-def build_summary(cart):
+def build_summary(cart, coupon=None):
     """Lines and totals for the checkout page, using the same availability rules as the cart."""
     items = cart.items.select_related("book", "book__seller").order_by("pk") if cart else []
     lines = []
@@ -66,10 +74,15 @@ def build_summary(cart):
         else:
             subtotal += line_total
         lines.append({"item": item, "book": book, "line_total": line_total, "problem": problem})
-    return {**totals_for(subtotal), "lines": lines, "problems": problems}
+    return {
+        **totals_for(subtotal, coupons.discount_for(coupon, subtotal)),
+        "coupon": coupon,
+        "lines": lines,
+        "problems": problems,
+    }
 
 
-def place_order(user, shipping_address, card, gateway=None):
+def place_order(user, shipping_address, card, gateway=None, coupon_code=""):
     """Charge the card and create the paid order, or raise without changing anything."""
     try:
         gateway = gateway or payments.get_gateway()
@@ -92,7 +105,8 @@ def place_order(user, shipping_address, card, gateway=None):
             if item.quantity > book.stock:
                 raise CheckoutError(f'Only {book.stock} left of "{book.title}". Lower the copies in your cart.')
             subtotal += money(book.price * item.quantity)
-        totals = totals_for(subtotal)
+        coupon = coupons.find(coupon_code, for_update=True) if coupon_code else None
+        totals = totals_for(subtotal, coupons.discount_for(coupon, subtotal))
         result = gateway.charge(card, totals["total"])
         if not result.success:
             raise PaymentDeclined(result.error or "Payment failed. No money was taken.")
@@ -100,8 +114,12 @@ def place_order(user, shipping_address, card, gateway=None):
             user=user,
             status=Order.Status.PAID,
             total=totals["total"],
+            discount=totals["discount"],
+            coupon_code=coupon.code if coupon else "",
             shipping_address=shipping_address,
         )
+        if coupon:
+            coupons.redeem(coupon)
         OrderItem.objects.bulk_create(
             [
                 OrderItem(
@@ -128,9 +146,10 @@ def place_order(user, shipping_address, card, gateway=None):
 # reaches it, and the order is only created once the gateway confirms the session was paid.
 
 
-def start_hosted_payment(user, shipping_address, success_url, cancel_url):
+def start_hosted_payment(user, shipping_address, success_url, cancel_url, coupon_code=""):
     """Record the payment and return the gateway page the buyer must be sent to."""
-    summary = build_summary(Cart.objects.filter(user=user).first())
+    coupon = coupons.find(coupon_code) if coupon_code else None
+    summary = build_summary(Cart.objects.filter(user=user).first(), coupon)
     if not summary["lines"]:
         raise CheckoutError("Your cart is empty. Add a book before checking out.")
     if summary["problems"]:
@@ -140,7 +159,12 @@ def start_hosted_payment(user, shipping_address, success_url, cancel_url):
         for line in summary["lines"]
     ]
     pending = PendingPayment.objects.create(
-        user=user, total=summary["total"], shipping_address=shipping_address, lines=lines
+        user=user,
+        total=summary["total"],
+        discount=summary["discount"],
+        coupon_code=coupon.code if coupon else "",
+        shipping_address=shipping_address,
+        lines=lines,
     )
     items = [
         (line["book"].title, stripe_gateway.to_minor_units(line["book"].price), line["item"].quantity)
@@ -152,7 +176,12 @@ def start_hosted_payment(user, shipping_address, success_url, cancel_url):
         items.append(("Shipping", stripe_gateway.to_minor_units(summary["shipping"]), 1))
     try:
         session = stripe_gateway.create_checkout_session(
-            pending.pk, user.email, items, success_url, f"{cancel_url}?payment={pending.pk}"
+            pending.pk,
+            user.email,
+            items,
+            success_url,
+            f"{cancel_url}?payment={pending.pk}",
+            discount=(pending.coupon_code, stripe_gateway.to_minor_units(pending.discount)) if coupon else None,
         )
     except stripe_gateway.StripeError as error:
         pending.status = PendingPayment.Status.FAILED
@@ -215,8 +244,13 @@ def complete_hosted_payment(user, session_id):
                 user=user,
                 status=Order.Status.PAID,
                 total=pending.total,
+                discount=pending.discount,
+                coupon_code=pending.coupon_code,
                 shipping_address=pending.shipping_address,
             )
+            if pending.coupon_code:
+                # Already validated and paid for when the payment started; count the use.
+                Coupon.objects.filter(code=pending.coupon_code).update(times_used=F("times_used") + 1)
             OrderItem.objects.bulk_create(
                 [
                     OrderItem(
