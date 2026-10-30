@@ -98,6 +98,8 @@ sandbox gateway (`PAYMENT_GATEWAY=sandbox`): card `4242 4242 4242 4242` succeeds
 [checkout and payment](docs/sprint2/checkout-and-payment.md) for totals, test-plan
 mapping and remaining checks.
 
+Set `PAYMENT_GATEWAY=stripe` and `STRIPE_SECRET_KEY` (test mode) to pay through Stripe Checkout's hosted page instead: the buyer enters the card on Stripe, and the order is created as paid only after the server confirms the payment with Stripe. See the Stripe section in that document.
+
 ## Admin listing moderation
 
 Moderators use `/moderation/` to review pending listings and approve, suspend or

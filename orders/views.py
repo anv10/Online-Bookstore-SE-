@@ -2,14 +2,17 @@ from decimal import Decimal
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.http import Http404, HttpResponse
+from django.conf import settings
+from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
+from django.urls import reverse
+from django.views.decorators.http import require_GET
 
 from cart.models import Cart
 
 from . import checkout as checkout_service
-from .forms import CheckoutForm
+from .forms import CheckoutForm, HostedCheckoutForm
 from .models import Order
 from .tracking import tracking_steps
 
@@ -40,11 +43,15 @@ def checkout(request):
     if summary["problems"]:
         messages.error(request, "Some items in your cart need attention before you can check out.")
         return redirect("cart")
-    form = CheckoutForm(
+    hosted = settings.PAYMENT_GATEWAY == "stripe"
+    form_class = HostedCheckoutForm if hosted else CheckoutForm
+    form = form_class(
         request.POST if request.method == "POST" else None,
         initial={"shipping_address": _last_address(request.user)},
     )
     if request.method == "POST" and form.is_valid():
+        if hosted:
+            return _start_hosted_payment(request, form, summary)
         try:
             order = checkout_service.place_order(
                 request.user, form.cleaned_data["shipping_address"], form.card()
@@ -57,7 +64,44 @@ def checkout(request):
         else:
             messages.success(request, f"Payment received. Order #{order.pk} is confirmed.")
             return redirect("order_confirmation", pk=order.pk)
-    return render(request, "orders/checkout.html", {"form": form, "summary": summary})
+    return render(request, "orders/checkout.html", {"form": form, "summary": summary, "hosted": hosted})
+
+
+def _start_hosted_payment(request, form, summary):
+    success_url = request.build_absolute_uri(reverse("checkout_complete")) + "?session_id={CHECKOUT_SESSION_ID}"
+    cancel_url = request.build_absolute_uri(reverse("checkout_cancel"))
+    try:
+        url = checkout_service.start_hosted_payment(
+            request.user, form.cleaned_data["shipping_address"], success_url, cancel_url
+        )
+    except checkout_service.CheckoutError as error:
+        messages.error(request, str(error))
+        return render(
+            request, "orders/checkout.html", {"form": form, "summary": summary, "hosted": True}, status=502
+        )
+    return HttpResponseRedirect(url)
+
+
+@login_required
+@require_GET
+def checkout_complete(request):
+    """Where the gateway sends the buyer after paying. The gateway is asked, not trusted."""
+    try:
+        order = checkout_service.complete_hosted_payment(request.user, request.GET.get("session_id", ""))
+    except checkout_service.CheckoutError as error:
+        messages.error(request, str(error))
+        return redirect("cart")
+    messages.success(request, f"Payment received. Order #{order.pk} is confirmed.")
+    return redirect("order_confirmation", pk=order.pk)
+
+
+@login_required
+@require_GET
+def checkout_cancel(request):
+    """The buyer backed out on the gateway page: nothing was charged and no order was made."""
+    checkout_service.cancel_hosted_payment(request.user, request.GET.get("payment", ""))
+    messages.error(request, "Payment cancelled. You were not charged and your cart is unchanged.")
+    return redirect("checkout")
 
 
 @login_required

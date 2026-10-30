@@ -40,6 +40,22 @@ Any future expiry (`12/34`) and any 3-digit security code work with the sandbox.
 
 Issue #10 replaces the provider by implementing `charge()` against the chosen gateway SDK and switching `PAYMENT_GATEWAY`; the checkout view, totals and order transaction do not change.
 
+## Stripe Checkout (issue #10)
+
+Set `PAYMENT_GATEWAY=stripe` and `STRIPE_SECRET_KEY` (a test-mode key, `sk_test_...`, from the Stripe dashboard) to use the hosted payment page. `sandbox` stays the default so tests and the offline demo need no account.
+
+Flow:
+
+1. The checkout page asks for the shipping address only. There are no card fields, so the card number never reaches this server.
+2. On submit we store a `PendingPayment` (cart lines, total, encrypted address), create a Stripe Checkout Session over Stripe's REST API, and send the buyer to Stripe's page. Tax and shipping are sent as their own line items so the Stripe total equals the total shown here. No order exists yet and stock is untouched.
+3. **Paid:** Stripe returns the buyer to `/checkout/complete/?session_id=...`. The server does not trust that link: it asks Stripe for the session and only accepts it when the payment status is `paid` and the amount, currency and our payment reference all match. Then, in one transaction, it creates the **Paid** order, decrements stock and clears the bought books from the cart. Opening the link again returns the same order.
+4. **Cancelled or failed:** `/checkout/cancel/` marks the payment cancelled and returns to checkout with an error. No order is created, nothing is charged and the cart is unchanged. If Stripe cannot be reached when starting, the buyer sees an error and nothing is left behind.
+5. **Sold out while paying:** if a copy sells out after payment, the payment is refunded through Stripe's refund API and no order is created. If the refund call itself fails, the buyer is shown the payment number to quote to the store.
+
+Stripe's test cards work on its hosted page: `4242 4242 4242 4242` succeeds and `4000 0000 0000 0002` is declined, with any future expiry and any three digits.
+
+Not verified here: the code is tested with Stripe's HTTP calls mocked, so no request has been made to the live Stripe test API from this repository. Before the demo, run one real purchase with your test key (success, then cancel) and tick the NFR-5 browser check. Webhooks are not used; if a buyer closes the browser after paying but before returning, the payment stays "started" and the store can reconcile it from the Stripe dashboard.
+
 ## Concurrency
 
 `Book.objects.select_for_update()` locks the rows for the checkout transaction, and each decrement uses a guarded `filter(stock__gte=quantity).update(...)` as a second line of defence. Two buyers racing for the last copy therefore produce one order; the other is told the copy sold out.

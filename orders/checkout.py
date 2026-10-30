@@ -6,6 +6,7 @@ locked and re-checked inside the order transaction, and the order only exists
 once the gateway accepts the card.
 """
 
+import logging
 from decimal import ROUND_HALF_UP, Decimal
 
 from django.conf import settings
@@ -15,8 +16,10 @@ from django.db.models import F
 from cart.models import Cart
 from catalog.models import Book
 
-from . import payments
-from .models import Order, OrderItem
+from . import payments, stripe_gateway
+from .models import Order, OrderItem, PendingPayment
+
+logger = logging.getLogger(__name__)
 
 MONEY = Decimal("0.01")
 
@@ -118,3 +121,135 @@ def place_order(user, shipping_address, card, gateway=None):
                 raise CheckoutError(f'"{locked[item.book_id].title}" sold out while you were paying. Please try again.')
         cart.items.all().delete()
         return order
+
+
+# --- Hosted payment (Stripe Checkout, issue #10) -------------------------------------------
+# The buyer pays on the gateway's own page. Nothing is charged by this server, no card data
+# reaches it, and the order is only created once the gateway confirms the session was paid.
+
+
+def start_hosted_payment(user, shipping_address, success_url, cancel_url):
+    """Record the payment and return the gateway page the buyer must be sent to."""
+    summary = build_summary(Cart.objects.filter(user=user).first())
+    if not summary["lines"]:
+        raise CheckoutError("Your cart is empty. Add a book before checking out.")
+    if summary["problems"]:
+        raise CheckoutError("Some items in your cart need attention before you can check out.")
+    lines = [
+        {"book_id": line["book"].pk, "quantity": line["item"].quantity, "unit_price": str(line["book"].price)}
+        for line in summary["lines"]
+    ]
+    pending = PendingPayment.objects.create(
+        user=user, total=summary["total"], shipping_address=shipping_address, lines=lines
+    )
+    items = [
+        (line["book"].title, stripe_gateway.to_minor_units(line["book"].price), line["item"].quantity)
+        for line in summary["lines"]
+    ]
+    if summary["tax"]:
+        items.append(("Tax", stripe_gateway.to_minor_units(summary["tax"]), 1))
+    if summary["shipping"]:
+        items.append(("Shipping", stripe_gateway.to_minor_units(summary["shipping"]), 1))
+    try:
+        session = stripe_gateway.create_checkout_session(
+            pending.pk, user.email, items, success_url, f"{cancel_url}?payment={pending.pk}"
+        )
+    except stripe_gateway.StripeError as error:
+        pending.status = PendingPayment.Status.FAILED
+        pending.save(update_fields=["status"])
+        raise CheckoutError(f"{error} No money was taken. Please try again.") from error
+    pending.session_id = session["id"]
+    pending.save(update_fields=["session_id"])
+    return session["url"]
+
+
+def cancel_hosted_payment(user, payment_id):
+    """The buyer backed out on the gateway page. Nothing was charged and no order exists."""
+    if not str(payment_id).isdigit():
+        return
+    PendingPayment.objects.filter(
+        pk=int(payment_id), user=user, status=PendingPayment.Status.STARTED, order__isnull=True
+    ).update(status=PendingPayment.Status.CANCELLED)
+
+
+def complete_hosted_payment(user, session_id):
+    """Ask the gateway whether the session was paid, then create the paid order (once)."""
+    pending = PendingPayment.objects.filter(user=user, session_id=session_id).first()
+    if pending is None:
+        raise CheckoutError("We could not find that payment.")
+    if pending.order_id:
+        return pending.order
+    if pending.status != PendingPayment.Status.STARTED:
+        raise CheckoutError("That payment was not completed, so no order was created. No money was taken.")
+    try:
+        session = stripe_gateway.retrieve_session(session_id)
+    except stripe_gateway.StripeError as error:
+        raise CheckoutError(
+            f"We could not confirm your payment yet. If money was taken, quote payment #{pending.pk} to the store."
+        ) from error
+    paid = (
+        session.get("payment_status") == "paid"
+        and session.get("amount_total") == stripe_gateway.to_minor_units(pending.total)
+        and session.get("currency") == stripe_gateway.CURRENCY
+        and session.get("client_reference_id") == str(pending.pk)
+    )
+    if not paid:
+        raise CheckoutError("Your payment was not completed, so no order was created. No money was taken.")
+    sold_out = None
+    with transaction.atomic():
+        pending = PendingPayment.objects.select_for_update().get(pk=pending.pk)
+        if pending.order_id:
+            return pending.order
+        lines = pending.lines
+        locked = {
+            book.pk: book
+            for book in Book.objects.select_for_update().filter(pk__in=[line["book_id"] for line in lines])
+        }
+        for line in lines:
+            book = locked.get(line["book_id"])
+            if book is None or not is_buyable(book) or line["quantity"] > book.stock:
+                sold_out = book.title if book else "A book"
+                break
+        if sold_out is None:
+            order = Order.objects.create(
+                user=user,
+                status=Order.Status.PAID,
+                total=pending.total,
+                shipping_address=pending.shipping_address,
+            )
+            OrderItem.objects.bulk_create(
+                [
+                    OrderItem(
+                        order=order,
+                        book=locked[line["book_id"]],
+                        quantity=line["quantity"],
+                        unit_price=Decimal(line["unit_price"]),
+                    )
+                    for line in lines
+                ]
+            )
+            for line in lines:
+                updated = Book.objects.filter(pk=line["book_id"], stock__gte=line["quantity"]).update(
+                    stock=F("stock") - line["quantity"]
+                )
+                if not updated:
+                    raise CheckoutError("A book sold out while you were paying. Please contact the store.")
+            cart = Cart.objects.filter(user=user).first()
+            if cart:
+                cart.items.filter(book_id__in=[line["book_id"] for line in lines]).delete()
+            pending.order = order
+            pending.status = PendingPayment.Status.COMPLETED
+            pending.save(update_fields=["order", "status"])
+            return order
+    # Paid, but a copy sold out in the meantime: give the money back instead of keeping it.
+    try:
+        stripe_gateway.refund(session.get("payment_intent"))
+    except stripe_gateway.StripeError:
+        logger.error("Refund failed for payment %s", pending.pk)
+        PendingPayment.objects.filter(pk=pending.pk).update(status=PendingPayment.Status.FAILED)
+        raise CheckoutError(
+            f'"{sold_out}" sold out while you were paying and we could not refund you automatically. '
+            f"Please contact the store and quote payment #{pending.pk}."
+        )
+    PendingPayment.objects.filter(pk=pending.pk).update(status=PendingPayment.Status.REFUNDED)
+    raise CheckoutError(f'"{sold_out}" sold out while you were paying. Your payment has been refunded.')
