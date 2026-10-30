@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("orders", "0005_order_confirmation"),
+        ("orders", "0006_pendingpayment"),
     ]
 
     operations = [

@@ -121,7 +121,7 @@ def seller_order_deliver(request, order_id):
         order = Order.objects.select_for_update().prefetch_related("items__book").get(pk=order_id)
         row = _seller_order(order, request.user)
         if order.status not in DELIVERABLE:
-            messages.error(request, "Only shipped orders can be marked as delivered.")
+            messages.error(request, "Only shipped or out-for-delivery orders can be marked delivered.")
         elif row["shared"]:
             messages.error(
                 request,
