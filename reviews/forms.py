@@ -15,18 +15,26 @@ class ReviewForm(forms.ModelForm):
         },
     )
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # FR-10 (Test Plan FR-10_UT02): the review text is mandatory. The model keeps
+        # blank=True so existing rows and administrative edits are not broken.
+        self.fields["comment"].required = True
+        self.fields["comment"].error_messages["required"] = "Review text is required."
+        self.fields["comment"].widget.attrs["placeholder"] = "Say what you thought of the book"
+
     class Meta:
         model = Review
         fields = ["rating", "comment"]
         widgets = {
-            "comment": forms.Textarea(
-                attrs={"rows": 4, "maxlength": 2000, "placeholder": "Optional: say what you thought of the book"}
-            )
+            "comment": forms.Textarea(attrs={"rows": 4, "maxlength": 2000})
         }
-        labels = {"comment": "Review (optional)"}
+        labels = {"comment": "Review"}
 
     def clean_comment(self):
-        comment = self.cleaned_data.get("comment", "").strip()
+        comment = (self.cleaned_data.get("comment") or "").strip()
+        if not comment:
+            raise forms.ValidationError("Review text is required.")
         if len(comment) > 2000:
             raise forms.ValidationError("Keep your review to 2000 characters or fewer.")
         return comment
