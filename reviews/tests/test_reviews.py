@@ -80,10 +80,14 @@ class ReviewSubmissionTests(TestCase):
         self.post()
         self.assertFalse(Review.objects.exists())
 
-    def test_review_text_is_optional(self):
+    def test_review_text_is_required(self):
         self.deliver()
-        self.post(rating=3, comment="")
-        self.assertEqual(Review.objects.get().comment, "")
+        for blank in ("", "   "):
+            with self.subTest(comment=blank):
+                response = self.post(rating=3, comment=blank)
+                self.assertEqual(response.status_code, 200)
+                self.assertContains(response, "Review text is required.")
+                self.assertFalse(Review.objects.exists())
 
     def test_book_must_be_visible(self):
         hidden = self.make_book(title="Hidden", isbn="9780000000011", status=Book.Status.PENDING)
