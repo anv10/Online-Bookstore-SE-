@@ -181,6 +181,8 @@ EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
 EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "1") == "1"
 EMAIL_TIMEOUT = 10
 DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "bookstore@localhost")
+# SMS order confirmations (FR-6). "console" logs a masked line and texts nobody; set it empty to switch SMS off.
+SMS_GATEWAY = os.environ.get("SMS_GATEWAY", "console")
 
 # Customer support address shown in the footer and on the support page (NFR-12).
 SUPPORT_EMAIL = os.environ.get("SUPPORT_EMAIL", "support@chapterandco.example")
