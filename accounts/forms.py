@@ -6,6 +6,7 @@ from django.core.exceptions import ValidationError
 from django import forms
 from django.db import IntegrityError, transaction
 
+from . import throttle
 from .models import User
 
 PHONE_RE = re.compile(r"^\+?\d{7,15}$")
@@ -72,6 +73,24 @@ class LoginForm(AuthenticationForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["username"].label = "Email or phone"
+
+    def clean(self):
+        username, password = self.cleaned_data.get("username"), self.cleaned_data.get("password")
+        if not username or not password:
+            return super().clean()
+        key = throttle.key_for(username)
+        minutes = throttle.minutes_locked(key)
+        if minutes:
+            raise ValidationError(throttle.lock_message(minutes), code="locked")
+        try:
+            cleaned = super().clean()
+        except ValidationError:
+            minutes = throttle.record_failure(key)
+            if minutes:
+                raise ValidationError(throttle.lock_message(minutes), code="locked")
+            raise
+        throttle.reset(key)
+        return cleaned
 
 
 class PasswordResetRequestForm(forms.Form):
