@@ -55,6 +55,18 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.email or self.phone
 
 
+class LoginThrottle(models.Model):
+    """Consecutive failed sign-ins for one typed identifier, and when its temporary lock ends."""
+
+    identifier = models.CharField(max_length=254, unique=True)
+    failures = models.PositiveSmallIntegerField(default=0)
+    locked_until = models.DateTimeField(null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        default_permissions = ()
+
+
 class AccountAction(models.Model):
     """An audited administrative action on a user account."""
 
