@@ -192,3 +192,13 @@ PAYMENT_GATEWAY = os.environ.get("PAYMENT_GATEWAY", "sandbox")
 # "stripe" sends the buyer to Stripe Checkout (hosted page). Use a test-mode key (sk_test_...) outside production.
 STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY", "")
 PAYMENT_SANDBOX_DECLINE_CARDS = ["4000000000000002"]
+
+# Shipments and live tracking (FR-9, NFR-11). The sandbox carrier is the only
+# provider enabled for development, tests and demos; "http" talks to a documented
+# carrier REST API at SHIPPING_API_URL.
+SHIPPING_PROVIDER = os.environ.get("SHIPPING_PROVIDER", "sandbox")
+SHIPPING_API_URL = os.environ.get("SHIPPING_API_URL", "")
+SHIPPING_API_KEY = os.environ.get("SHIPPING_API_KEY", "")
+SHIPPING_TRANSIT_DAYS = int(os.environ.get("SHIPPING_TRANSIT_DAYS", "5"))
+# Shared secret for the carrier's status webhook; unset disables the endpoint.
+LOGISTICS_WEBHOOK_SECRET = os.environ.get("LOGISTICS_WEBHOOK_SECRET", "")

@@ -16,7 +16,7 @@ from django.db.models import F
 from cart.models import Cart
 from catalog.models import Book
 
-from . import coupons, payments, stripe_gateway
+from . import coupons, payments, stripe_gateway, tracking
 from .models import Coupon, Order, OrderItem, PendingPayment
 
 logger = logging.getLogger(__name__)
@@ -77,6 +77,7 @@ def build_summary(cart, coupon=None):
     return {
         **totals_for(subtotal, coupons.discount_for(coupon, subtotal)),
         "coupon": coupon,
+        "coupon_problem": coupons.minimum_problem(coupon, subtotal),
         "lines": lines,
         "problems": problems,
     }
@@ -106,6 +107,10 @@ def place_order(user, shipping_address, card, gateway=None, coupon_code=""):
                 raise CheckoutError(f'Only {book.stock} left of "{book.title}". Lower the copies in your cart.')
             subtotal += money(book.price * item.quantity)
         coupon = coupons.find(coupon_code, for_update=True) if coupon_code else None
+        problem = coupons.minimum_problem(coupon, subtotal)
+        if problem:
+            # The buyer never sees a total that a coupon could not legally reach.
+            raise coupons.CouponError(problem)
         totals = totals_for(subtotal, coupons.discount_for(coupon, subtotal))
         result = gateway.charge(card, totals["total"])
         if not result.success:
@@ -118,6 +123,7 @@ def place_order(user, shipping_address, card, gateway=None, coupon_code=""):
             coupon_code=coupon.code if coupon else "",
             shipping_address=shipping_address,
         )
+        tracking.log_status(order, Order.Status.PAID, note="Payment received")
         if coupon:
             coupons.redeem(coupon)
         OrderItem.objects.bulk_create(
@@ -248,6 +254,7 @@ def complete_hosted_payment(user, session_id):
                 coupon_code=pending.coupon_code,
                 shipping_address=pending.shipping_address,
             )
+            tracking.log_status(order, Order.Status.PAID, note="Payment received")
             if pending.coupon_code:
                 # Already validated and paid for when the payment started; count the use.
                 Coupon.objects.filter(code=pending.coupon_code).update(times_used=F("times_used") + 1)
