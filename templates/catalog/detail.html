@@ -17,6 +17,8 @@
       <dt>Availability</dt>
       <dd>{% if book.stock %}In stock ({{ book.stock }} available){% else %}<span class="out">Out of stock</span>{% endif %}</dd>
       <dt>Seller</dt><dd>{% if book.seller %}{{ book.seller.full_name|default:'Independent seller' }}{% else %}Not specified{% endif %}</dd>
+      {% if book.seller %}<dt>Seller rating</dt>
+      <dd>{% if seller_review_count %}{{ seller_average_rating|floatformat:1 }} / 5 across {{ seller_review_count }} review{{ seller_review_count|pluralize }}{% else %}No seller ratings yet{% endif %}</dd>{% endif %}
       <dt>Condition</dt><dd>{% if book.condition %}{{ book.get_condition_display }}{% else %}Not specified{% endif %}</dd>
       <dt>Rating</dt>
       <dd>{% if review_count %}{{ average_rating|floatformat:1 }} / 5 ({{ review_count }} review{{ review_count|pluralize }}){% else %}No ratings yet{% endif %}</dd>
