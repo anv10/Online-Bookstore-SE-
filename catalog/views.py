@@ -2,6 +2,7 @@ from django.core.paginator import Paginator
 from django.db.models import Avg, Count, Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404, render
+from reviews.models import Review
 from reviews.services import has_delivered_purchase
 
 from .forms import SearchForm
@@ -109,6 +110,14 @@ def book_detail(request, pk):
         raise Http404("Book not found")
     reviews = list(book.reviews.select_related("user").order_by("-created_at", "-pk"))
     summary = book.reviews.aggregate(average=Avg("rating"), count=Count("pk"))
+    # The seller's rating is the average over reviews of all their approved listings.
+    seller_summary = (
+        Review.objects.filter(book__seller=book.seller, book__status=Book.Status.APPROVED).aggregate(
+            average=Avg("rating"), count=Count("pk")
+        )
+        if book.seller
+        else {"average": None, "count": 0}
+    )
     user_review = None
     can_review = False
     in_wishlist = False
@@ -124,6 +133,8 @@ def book_detail(request, pk):
             "reviews": reviews,
             "average_rating": summary["average"],
             "review_count": summary["count"],
+            "seller_average_rating": seller_summary["average"],
+            "seller_review_count": seller_summary["count"],
             "user_review": user_review,
             "can_review": can_review,
             "in_wishlist": in_wishlist,

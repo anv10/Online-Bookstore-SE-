@@ -66,6 +66,45 @@ class BookDetailTests(TestCase):
         self.assertContains(response, "Asha")
         self.assertContains(response, "A reader")
 
+    def test_seller_rating_averages_reviews_across_the_sellers_approved_listings(self):
+        other = Book.objects.create(
+            title="The Hobbit", author="Tolkien", isbn="9780261103344", price=Decimal("300.00"), stock=2,
+            seller=self.seller, status=Book.Status.APPROVED,
+        )
+        first = User.objects.create_user("a@example.com", "pw")
+        second = User.objects.create_user("b@example.com", "pw")
+        Review.objects.create(book=self.book, user=first, rating=5)
+        Review.objects.create(book=other, user=second, rating=2)
+        response = self.get()
+        self.assertContains(response, "Seller rating")
+        self.assertContains(response, "3.5 / 5 across 2 reviews")
+
+    def test_seller_rating_ignores_other_sellers_and_unapproved_listings(self):
+        rival = User.objects.create_user("rival@example.com", "pw", full_name="Rival")
+        rival_book = Book.objects.create(
+            title="Other", author="A", isbn="9780261103344", price=Decimal("100.00"), stock=1,
+            seller=rival, status=Book.Status.APPROVED,
+        )
+        removed = Book.objects.create(
+            title="Gone", author="A", isbn="9780061120084", price=Decimal("100.00"), stock=1,
+            seller=self.seller, status=Book.Status.REMOVED,
+        )
+        reader = User.objects.create_user("a@example.com", "pw")
+        other_reader = User.objects.create_user("b@example.com", "pw")
+        third = User.objects.create_user("c@example.com", "pw")
+        Review.objects.create(book=self.book, user=reader, rating=4)
+        Review.objects.create(book=rival_book, user=other_reader, rating=1)
+        Review.objects.create(book=removed, user=third, rating=1)
+        self.assertContains(self.get(), "4.0 / 5 across 1 review<")
+
+    def test_seller_without_reviews_shows_no_seller_ratings_yet(self):
+        self.assertContains(self.get(), "No seller ratings yet")
+
+    def test_listing_without_a_seller_has_no_seller_rating_row(self):
+        self.book.seller = None
+        self.book.save()
+        self.assertNotContains(self.get(), "Seller rating")
+
     def test_reviewer_contact_details_are_not_exposed(self):
         user = User.objects.create_user("private@example.com", "pw", phone="+15550999")
         Review.objects.create(book=self.book, user=user, rating=4)
