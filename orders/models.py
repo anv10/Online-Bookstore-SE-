@@ -96,7 +96,7 @@ class OrderConfirmation(models.Model):
     class State(models.TextChoices):
         PENDING = "pending", "Pending"
         SENT = "sent", "Sent"
-        SKIPPED = "skipped", "Skipped (no email address)"
+        SKIPPED = "skipped", "Skipped (no address to send to)"
         FAILED = "failed", "Failed"
 
     order = models.OneToOneField(Order, on_delete=models.CASCADE, related_name="confirmation")
@@ -104,4 +104,9 @@ class OrderConfirmation(models.Model):
     attempts = models.PositiveSmallIntegerField(default=0)
     last_error = models.CharField(max_length=100, blank=True)
     sent_at = models.DateTimeField(null=True, blank=True)
+    # The SMS confirmation is tracked separately so an email problem never blocks it, or the reverse.
+    sms_state = models.CharField(max_length=10, choices=State.choices, default=State.PENDING, db_index=True)
+    sms_attempts = models.PositiveSmallIntegerField(default=0)
+    sms_last_error = models.CharField(max_length=100, blank=True)
+    sms_sent_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
