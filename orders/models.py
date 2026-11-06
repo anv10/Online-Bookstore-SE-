@@ -58,6 +58,8 @@ class Order(models.Model):
     total = models.DecimalField(max_digits=10, decimal_places=2)
     discount = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
     coupon_code = models.CharField(max_length=40, blank=True)
+    # The carrier's own reference for this shipment (FR-9). Empty until it ships.
+    tracking_reference = models.CharField(max_length=64, blank=True, db_index=True)
     shipping_address = EncryptedTextField()
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -65,6 +67,13 @@ class Order(models.Model):
     def refunded_total(self):
         """Rupees returned to the buyer so far (FR-13, Test Plan FR-13_IT03)."""
         return self.refunds.aggregate(total=models.Sum("amount"))["total"] or Decimal("0.00")
+
+    @property
+    def estimated_delivery(self):
+        """Ship date plus the configured transit time (FR-9, Test Plan FR-9_UT03)."""
+        from .tracking import estimated_delivery as _estimated_delivery
+
+        return _estimated_delivery(self)
 
 
 class OrderItem(models.Model):
@@ -100,6 +109,28 @@ class PendingPayment(models.Model):
     lines = models.JSONField(default=list)
     order = models.OneToOneField(Order, null=True, blank=True, on_delete=models.SET_NULL, related_name="payment")
     created_at = models.DateTimeField(auto_now_add=True)
+
+
+class OrderStatusLog(models.Model):
+    """One row per status change, so the buyer sees a real timeline (FR-9)."""
+
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="status_log")
+    status = models.CharField(max_length=20, choices=Order.Status.choices)
+    note = models.CharField(max_length=255, blank=True)
+    changed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="order_status_changes",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["created_at", "pk"]
+
+    def __str__(self):
+        return f"Order #{self.order_id}: {self.get_status_display()}"
 
 
 class Refund(models.Model):
