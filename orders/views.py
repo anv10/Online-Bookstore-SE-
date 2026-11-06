@@ -87,6 +87,12 @@ def checkout(request):
 def apply_coupon(request):
     try:
         coupon = coupons.find(request.POST.get("code", ""))
+        summary = checkout_service.build_summary(
+            Cart.objects.filter(user=request.user).first()
+        )
+        problem = coupons.minimum_problem(coupon, summary["subtotal"])
+        if problem:
+            raise coupons.CouponError(problem)
     except coupons.CouponError as error:
         messages.error(request, str(error))
     else:
@@ -170,10 +176,33 @@ def build_invoice(order):
     """
     lines = []
     subtotal = Decimal("0")
-    for item in order.items.all():
+    groups = {}
+    for item in order.items.select_related("book", "book__seller"):
         line_total = item.unit_price * item.quantity
         subtotal += line_total
-        lines.append({"item": item, "title": item.book.title, "line_total": line_total})
+        seller = item.book.seller
+        line = {
+            "item": item,
+            "title": item.book.title,
+            "line_total": line_total,
+            "seller": seller,
+        }
+        lines.append(line)
+        # FR-13 (Test Plan FR-13_ST02): an order spanning sellers is itemised per seller.
+        key = seller.pk if seller else 0
+        group = groups.get(key)
+        if group is None:
+            group = {
+                "seller": seller,
+                "name": (seller.full_name or seller.email or seller.phone)
+                if seller
+                else "Bookstore",
+                "lines": [],
+                "subtotal": Decimal("0"),
+            }
+            groups[key] = group
+        group["lines"].append(line)
+        group["subtotal"] += line_total
     difference = order.total - subtotal
     if order.discount:
         discounts = order.discount
@@ -181,15 +210,20 @@ def build_invoice(order):
     else:
         discounts = max(-difference, Decimal("0"))
         taxes = max(difference, Decimal("0"))
+    refunded = order.refunded_total
     return {
         "order": order,
         "number": f"INV-{order.pk:06d}",
         "lines": lines,
+        "sellers": list(groups.values()),
         "subtotal": subtotal,
         "discounts": discounts,
         "taxes": taxes,
         "coupon_code": order.coupon_code,
         "total": order.total,
+        "refunds": list(order.refunds.all()),
+        "refunded_total": refunded,
+        "net_total": order.total - refunded,
     }
 
 

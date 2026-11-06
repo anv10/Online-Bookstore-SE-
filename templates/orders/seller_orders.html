@@ -3,23 +3,33 @@
 <a class="backlink" href="{% url 'seller_listings' %}">← Your listings</a>
 <div class="section-head"><div><p class="eyebrow">SELLER STUDIO</p><h1>Orders to fulfil.</h1></div></div>
 {% if rows %}
-<div class="table-wrap">
-  <table>
-    <thead><tr><th>Order</th><th>Date</th><th>Your books</th><th>Your total</th><th>Status</th><th></th></tr></thead>
-    <tbody>
-    {% for row in rows %}
-      <tr>
-        <td>#{{ row.order.pk }}</td>
-        <td>{{ row.order.created_at|date:"j M Y" }}</td>
-        <td>{% for entry in row.items %}{{ entry.item.book.title }} × {{ entry.item.quantity }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</td>
-        <td>₹{{ row.total }}</td>
-        <td>{{ row.order.get_status_display }}</td>
-        <td><a href="{% url 'seller_order_detail' row.order.pk %}">Open</a></td>
-      </tr>
-    {% endfor %}
-    </tbody>
-  </table>
-</div>
+<form method="post" action="{% url 'seller_orders_bulk_ship' %}">
+  {% csrf_token %}
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Ship</th><th>Order</th><th>Date</th><th>Your books</th><th>Your total</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+      {% for row in rows %}
+        <tr>
+          <td>
+            {% if row.can_ship %}
+            <input type="checkbox" name="orders" value="{{ row.order.pk }}" aria-label="Select order #{{ row.order.pk }}">
+            {% endif %}
+          </td>
+          <td>#{{ row.order.pk }}</td>
+          <td>{{ row.order.created_at|date:"j M Y" }}</td>
+          <td>{% for entry in row.items %}{{ entry.item.book.title }} × {{ entry.item.quantity }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</td>
+          <td>₹{{ row.total }}</td>
+          <td>{{ row.order.get_status_display }}</td>
+          <td><a href="{% url 'seller_order_detail' row.order.pk %}">Open</a></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <p><button class="button">Mark selected as shipped</button></p>
+  <p class="muted">Only paid orders containing just your books can be selected. A batch is applied only if every selected order can be shipped.</p>
+</form>
 {% else %}
 <div class="empty"><h2>No orders yet.</h2><p>Orders that include your books will show up here once they are paid.</p></div>
 {% endif %}
