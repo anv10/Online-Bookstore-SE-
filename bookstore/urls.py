@@ -30,6 +30,7 @@ from orders.seller_views import (
     seller_order_out_for_delivery,
     seller_order_ship,
     seller_orders,
+    seller_orders_bulk_ship,
 )
 from orders.views import apply_coupon, checkout, checkout_cancel, checkout_complete, invoice_download, invoice_view, order_confirmation, order_detail, order_list, remove_coupon
 from reviews.views import submit_review
@@ -48,6 +49,7 @@ urlpatterns = [
     path("moderation/", moderation.queue, name="moderation_queue"),
     path("moderation/<int:pk>/", moderation.decide, name="moderation_decide"),
     path("seller/orders/", seller_orders, name="seller_orders"),
+    path("seller/orders/bulk-ship/", seller_orders_bulk_ship, name="seller_orders_bulk_ship"),
     path("seller/orders/<int:order_id>/", seller_order_detail, name="seller_order_detail"),
     path("seller/orders/<int:order_id>/ship/", seller_order_ship, name="seller_order_ship"),
     path(

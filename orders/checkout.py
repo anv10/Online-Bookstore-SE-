@@ -77,6 +77,7 @@ def build_summary(cart, coupon=None):
     return {
         **totals_for(subtotal, coupons.discount_for(coupon, subtotal)),
         "coupon": coupon,
+        "coupon_problem": coupons.minimum_problem(coupon, subtotal),
         "lines": lines,
         "problems": problems,
     }
@@ -106,6 +107,10 @@ def place_order(user, shipping_address, card, gateway=None, coupon_code=""):
                 raise CheckoutError(f'Only {book.stock} left of "{book.title}". Lower the copies in your cart.')
             subtotal += money(book.price * item.quantity)
         coupon = coupons.find(coupon_code, for_update=True) if coupon_code else None
+        problem = coupons.minimum_problem(coupon, subtotal)
+        if problem:
+            # The buyer never sees a total that a coupon could not legally reach.
+            raise coupons.CouponError(problem)
         totals = totals_for(subtotal, coupons.discount_for(coupon, subtotal))
         result = gateway.charge(card, totals["total"])
         if not result.success:

@@ -22,6 +22,13 @@ class Coupon(models.Model):
     expires_at = models.DateTimeField(null=True, blank=True)
     max_uses = models.PositiveIntegerField(null=True, blank=True, help_text="Leave empty for no limit.")
     times_used = models.PositiveIntegerField(default=0, editable=False)
+    min_order_total = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text="Leave empty for no minimum order value (FR-11).",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     def clean(self):
