@@ -3,7 +3,7 @@
 Every case in `Documents/TestPlan_Online_Bookstore.pdf` executed against the merged `main` branch, with the result and the evidence for each one.
 
 - Repository: `anv10/Online-Bookstore-SE-`, branch `main`
-- Executed after the 30 Oct freeze, against the merged `main` branch
+- Sprint 2 close-out, executed after the 30 Oct freeze
 - Automated suite: **394 tests** (`python manage.py test`)
 - Cases executed: **120**
 
