@@ -93,7 +93,7 @@ The plan's own *Expected Result* column is the yardstick, not the SRS. Where the
 | FR-4_UT01 | Add a single item to an empty cart | Cart shows 1 item with correct price | Pass | cart.test_cart_views.test_add_from_details_page_defaults_to_one_copy |
 | FR-4_UT02 | Remove an item from a cart with multiple items | Cart now shows 2 items; total recalculated | Pass | cart.test_cart_views.test_remove_item |
 | FR-4_UT03 | Reject adding quantity exceeding available stock | Error "Only 2 units available" shown; cart not updated beyond stock | Pass | cart.test_cart_views.test_cannot_add_more_than_stock |
-| FR-4_IT01 | Cart total recalculates correctly with price and quantity | Total = 550, matches Rs. sum of line items | Pass | test_cart_page_lists_items_with_line_totals_and_total |
+| FR-4_IT01 | Cart total recalculates correctly with price and quantity | Total = 550, matches sum of line items | Pass | test_cart_page_lists_items_with_line_totals_and_total |
 | FR-4_IT02 | Cart persists across page reload for logged-in user | Same 2 items still present in cart after reload | Pass | test_cart_persists_across_sessions |
 | FR-4_IT03 | Same book from two different sellers kept as separate line items | Cart shows two distinct line items, not merged | Pass | cart keys on Book id, so two listings with the same ISBN stay separate (test_one_row_per_book_in_cart) |
 | FR-4_ST01 | End-to-end add, update quantity, and proceed to checkout | Checkout page loads with correct items and updated total | Pass | test_change_quantity + test_checkout_shows_items_quantities_address_and_total |
@@ -181,12 +181,12 @@ The plan's own *Expected Result* column is the yardstick, not the SRS. Where the
 
 | Case | Description | Expected result | Result | Evidence |
 | --- | --- | --- | --- | --- |
-| FR-11_UT01 | Apply valid active coupon calculates discount correctly | Discount of 100 applied; Rs. total = 900 Rs. | Pass | test_valid_fixed_coupon_reduces_the_total |
+| FR-11_UT01 | Apply valid active coupon calculates discount correctly | Discount of 100 applied; total = 900 | Pass | test_valid_fixed_coupon_reduces_the_total |
 | FR-11_UT02 | Reject expired coupon code | Error "This coupon has expired" shown | Pass | test_expired_coupon_is_rejected |
 | FR-11_UT03 | Reject invalid/non-existent coupon code | Error "Invalid coupon code" shown | Pass | test_unknown_code_shows_an_error_and_changes_nothing |
 | FR-11_IT01 | Coupon usage limit enforced against DB usage count | Error "Coupon usage limit reached" shown; discount not applied | Pass | test_coupon_at_its_usage_limit_is_rejected |
-| FR-11_IT02 | Coupon minimum order value validated against cart total | Rs. Error "Minimum order value of 500 required" Rs. shown | Fail - not built | Coupon model has no minimum-order-value field |
-| FR-11_IT03 | Discount correctly reflected in amount sent to payment gateway | Payment gateway receives Rs. 900 as the charge amount | Pass | test_hosted_payment_records_the_discount_and_sends_it_to_stripe |
+| FR-11_IT02 | Coupon minimum order value validated against cart total | Error "Minimum order value of 500 required" shown | Fail - not built | Coupon model has no minimum-order-value field |
+| FR-11_IT03 | Discount correctly reflected in amount sent to payment gateway | Payment gateway receives 900 as the charge amount | Pass | test_hosted_payment_records_the_discount_and_sends_it_to_stripe |
 | FR-11_ST01 | End-to-end apply coupon and charge discounted total | Order confirmation shows correct discounted total; payment matches | Pass | test_paid_order_stores_the_discount_and_counts_one_use |
 | FR-11_ST02 | Second coupon rejected when stacking is not allowed | Error "Only one coupon can be applied per order" shown | Fail - differs | second coupon REPLACES the first (test_applying_a_second_coupon_replaces_the_first) |
 
@@ -208,7 +208,7 @@ The plan's own *Expected Result* column is the yardstick, not the SRS. Where the
 | Case | Description | Expected result | Result | Evidence |
 | --- | --- | --- | --- | --- |
 | FR-13_UT01 | Generated invoice numbers are unique and correctly formatted | Each invoice number is unique and follows the defined format | Pass | INV-%06d from order pk; test_invoice_lists_order_date_items_prices_and_total (test itself hits a Windows strftime bug) |
-| FR-13_UT02 | Invoice total correctly sums line items, tax, and shipping | Invoice total = 575 Rs. | Pass | test_invoice_adds_up_when_total_matches_items |
+| FR-13_UT02 | Invoice total correctly sums line items, tax, and shipping | Invoice total = 575 | Pass | test_invoice_adds_up_when_total_matches_items |
 | FR-13_UT03 | Handle missing tax rate configuration gracefully | Falls back to default/zero tax with a logged warning, no crash | Pass | CHECKOUT_TAX_RATE defaults to 0.05 from env; no crash if unset (no warning logged) |
 | FR-13_IT01 | Invoice auto-generated on successful payment | Invoice record created and linked to the order automatically | Pass | invoice is built on demand from the order; no Invoice table (behaviour matches, storage differs) |
 | FR-13_IT02 | Invoice pulls correct buyer, seller, and item data from multiple tables | All invoice fields match the corresponding DB records exactly | Pass | test_invoice_lists_order_date_items_prices_and_total |
@@ -257,7 +257,7 @@ The plan's own *Expected Result* column is the yardstick, not the SRS. Where the
 | FR-9_IT02 | Order record updated to "Out for Delivery" in DB | no webhook endpoint |
 | FR-9_IT03 | All 4 timeline entries displayed in correct chronological order | no status-history table; tracker is derived from the current status |
 | FR-9_ST02 | Last known status shown with a notice, instead of an error/crash | inapplicable: there is no logistics API to fail |
-| FR-11_IT02 | Rs. Error "Minimum order value of 500 required" Rs. shown | Coupon model has no minimum-order-value field |
+| FR-11_IT02 | Error "Minimum order value of 500 required" shown | Coupon model has no minimum-order-value field |
 | FR-12_ST01 | Listing is removed/hidden from buyer-facing search after rejection | no flag/report workflow; only the pending-approval queue exists |
 | FR-13_IT03 | Invoice reflects net payable amount of 800 | no partial-refund feature and no refund adjustment on the invoice |
 | FR-13_ST02 | Invoice correctly splits/itemizes charges per seller | invoice lists all items flat; no per-seller split |
