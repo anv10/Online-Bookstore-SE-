@@ -114,3 +114,10 @@ security scope, test-plan mappings and remaining deployment checks.
 When an order is placed, the buyer gets an email with the order number, the items and the total (the shipping address is not included). It is sent after the order has been saved, so an email problem can never block or undo an order. Buyers who signed up with a phone number only have no email address and are skipped.
 
 If sending fails, the error type is logged and the confirmation stays pending. Run `python manage.py retry_order_confirmations` to send pending ones again, for example every few minutes from cron. A confirmation is given up after 5 failed attempts. This uses the same SMTP settings as the admin verification email (see `.env.example`).
+
+## Test Plan results
+
+All 120 cases in `Documents/TestPlan_Online_Bookstore.pdf` have been executed against
+`main` and recorded in [test plan results](docs/testing/test-plan-results.md): 97 pass,
+21 fail and 2 could not be run here. Every pass names the automated test that proves it.
+The failures are explained one by one in [deviations](docs/deviations.md).
