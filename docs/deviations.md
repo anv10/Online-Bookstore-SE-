@@ -1,6 +1,6 @@
 # Deviations from the SRS, SAD and Test Plan
 
-Where the build differs from the documents we submitted, and why. Status is as of 10 Nov 2026, after the 30 Oct freeze. Every issue and pull request referenced here is closed and merged.
+Where the build differs from the documents we submitted, and why. Status is current as of the end of Sprint 2, after the 30 Oct freeze. Every issue and pull request referenced here is closed and merged.
 
 The executed Test Plan, case by case with evidence, is in [`docs/testing/test-plan-results.md`](testing/test-plan-results.md). Of its 120 cases, 97 pass, 21 fail and 2 could not be run here; the failures are all explained by a row below.
 
