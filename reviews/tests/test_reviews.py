@@ -110,16 +110,26 @@ class ReviewSubmissionTests(TestCase):
     def test_review_is_editable_and_stays_a_single_row(self):
         self.deliver()
         self.post(rating=2, comment="Not for me")
-        response = self.post(rating=5, comment="Changed my mind")
+        response = self.client.post(self.url() + "?edit=1", {"rating": 5, "comment": "Changed my mind"})
         self.assertRedirects(response, reverse("book_detail", args=[self.book.pk]))
         review = Review.objects.get()
         self.assertEqual((review.rating, review.comment), (5, "Changed my mind"))
+
+    def test_a_second_review_is_refused_instead_of_overwriting_the_first(self):
+        self.deliver()
+        self.post(rating=2, comment="Not for me")
+        response = self.post(rating=5, comment="Changed my mind")
+        self.assertRedirects(response, reverse("book_detail", args=[self.book.pk]), fetch_redirect_response=False)
+        self.assertContains(self.client.get(response.url), "You have already reviewed this item.")
+        review = Review.objects.get()
+        self.assertEqual((review.rating, review.comment), (2, "Not for me"))
 
     def test_edit_form_is_shown_to_the_buyer_who_reviewed(self):
         self.deliver()
         self.post()
         page = self.client.get(reverse("book_detail", args=[self.book.pk]))
         self.assertContains(page, "Edit your review")
+        self.assertContains(page, "?edit=1")
         self.assertNotContains(page, "Write a review")
 
     def test_form_is_only_linked_after_a_delivered_purchase(self):

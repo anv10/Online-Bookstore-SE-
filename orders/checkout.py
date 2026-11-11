@@ -84,7 +84,49 @@ def build_summary(cart, coupon=None):
 
 
 def place_order(user, shipping_address, card, gateway=None, coupon_code=""):
-    """Charge the card and create the paid order, or raise without changing anything."""
+    """Charge the card and create the paid order.
+
+    A declined card leaves the cart untouched but still records a ``Payment Failed``
+    order, so the attempt is visible and the buyer can retry (Test Plan FR-5_IT02).
+    """
+    try:
+        return _place_paid_order(user, shipping_address, card, gateway, coupon_code)
+    except PaymentDeclined:
+        # The charge happened inside the transaction that has now rolled back, so the
+        # cart, stock and coupon are exactly as they were. Record the attempt outside it.
+        _record_failed_order(user, shipping_address, coupon_code)
+        raise
+
+
+def _record_failed_order(user, shipping_address, coupon_code):
+    """Keep a ``Payment Failed`` order for the declined attempt (Test Plan FR-5_IT02)."""
+    cart = Cart.objects.filter(user=user).first()
+    try:
+        coupon = coupons.find(coupon_code) if coupon_code else None
+        summary = build_summary(cart, coupon)
+    except Exception:
+        # A coupon that stopped being valid must not hide the decline itself.
+        summary = build_summary(cart, None)
+    order = Order.objects.create(
+        user=user,
+        status=Order.Status.PAYMENT_FAILED,
+        total=summary["total"],
+        discount=summary["discount"],
+        coupon_code=coupon_code if summary["discount"] else "",
+        shipping_address=shipping_address,
+    )
+    tracking.log_status(order, Order.Status.PAYMENT_FAILED, note="Payment declined")
+    OrderItem.objects.bulk_create(
+        [
+            OrderItem(order=order, book=line["book"], quantity=line["item"].quantity, unit_price=line["book"].price)
+            for line in summary["lines"]
+            if not line["problem"]
+        ]
+    )
+    return order
+
+
+def _place_paid_order(user, shipping_address, card, gateway=None, coupon_code=""):
     try:
         gateway = gateway or payments.get_gateway()
     except payments.PaymentError as error:

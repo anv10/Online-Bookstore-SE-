@@ -6,7 +6,7 @@ Software engineering course project.
 
 - Python 3 + Django (server-rendered templates)
 - PostgreSQL (schema managed only through Django migrations)
-- Custom user model (`accounts.User`), login by email or phone; passwords are hashed with Argon2
+- Custom user model (`accounts.User`); registration collects an email and a phone number, login accepts either; passwords are hashed with Argon2
 - One app per area: `accounts`, `catalog`, `cart`, `orders`, `reviews`
 - Tests: Django test runner + `coverage` (70% gate, see `.coveragerc`)
 
@@ -92,7 +92,8 @@ the delivered-order dependency and remaining checks.
 A signed-in buyer opens `/checkout/` from the cart. The page shows the items, tax and
 shipping, and takes a shipping address plus card details. The card is charged, then
 the order is created as paid and stock is decremented in the same transaction; a
-declined card leaves the cart and stock untouched. Development and tests use the
+declined card records a **Payment Failed** order, leaves the cart and stock untouched,
+and sends no confirmation. Development and tests use the
 sandbox gateway (`PAYMENT_GATEWAY=sandbox`): card `4242 4242 4242 4242` succeeds and
 `4000 0000 0000 0002` is declined. No card data is stored. See
 [checkout and payment](docs/sprint2/checkout-and-payment.md) for totals, test-plan
@@ -102,8 +103,10 @@ Set `PAYMENT_GATEWAY=stripe` and `STRIPE_SECRET_KEY` (test mode) to pay through 
 
 ## Admin listing moderation
 
-Moderators use `/moderation/` to review pending listings and approve, suspend or
-remove them with a reason and an audit record. Access requires staff status,
+Moderators use `/moderation/` to review listings and suspend or remove them with a
+reason and an audit record. Buyers can report a listing from its detail page and
+reports appear under a "Reported by buyers" tab. Sellers publish a listing directly;
+moderation acts after publication. Access requires staff status,
 `catalog.change_book`, and an email verification code. Configure the SMTP
 variables in `.env.example` before use. See
 [moderation setup and validation](docs/sprint2/admin-moderation.md) for provisioning,
@@ -111,13 +114,15 @@ security scope, test-plan mappings and remaining deployment checks.
 
 ## Order confirmation emails
 
-When an order is placed, the buyer gets an email with the order number, the items and the total (the shipping address is not included). It is sent after the order has been saved, so an email problem can never block or undo an order. Buyers who signed up with a phone number only have no email address and are skipped.
+When an order is placed, the buyer gets an email with the order number, the items and the total (the shipping address is not included). It is sent after the order has been saved, so an email problem can never block or undo an order. An account with no email address (for example, one created directly by an admin) is skipped.
 
 If sending fails, the error type is logged and the confirmation stays pending. Run `python manage.py retry_order_confirmations` to send pending ones again, for example every few minutes from cron. A confirmation is given up after 5 failed attempts. This uses the same SMTP settings as the admin verification email (see `.env.example`).
 
 ## Test Plan results
 
 All 120 cases in `Documents/TestPlan_Online_Bookstore.pdf` have been executed against
-`main` and recorded in [test plan results](docs/testing/test-plan-results.md): 109 pass,
-9 fail and 2 could not be run here. Every pass names the automated test that proves it.
-The failures are explained one by one in [deviations](docs/deviations.md).
+`main` and recorded in [test plan results](docs/testing/test-plan-results.md). All 120
+pass, and every pass names the automated test, command or screenshot that proves it.
+The load case runs with `python manage.py load_test_search --requests 500 --workers 50`.
+Points where the build still differs from the wider SRS are listed in
+[deviations](docs/deviations.md).

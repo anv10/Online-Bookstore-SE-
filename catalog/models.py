@@ -72,3 +72,41 @@ class AdminChallenge(models.Model):
 
     class Meta:
         default_permissions = ()
+
+
+class ListingFlag(models.Model):
+    """A buyer's report against a listing (FR-12_ST01).
+
+    Moderators work the open flags in the review queue. A decision on the
+    listing settles every open flag on it, so the queue drains as listings
+    are approved, suspended or removed.
+    """
+
+    class State(models.TextChoices):
+        OPEN = "open", "Open"
+        UPHELD = "upheld", "Upheld"
+        DISMISSED = "dismissed", "Dismissed"
+
+    book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name="flags")
+    reporter = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="listing_flags")
+    reason = models.CharField(max_length=1000)
+    state = models.CharField(max_length=10, choices=State.choices, default=State.OPEN, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    decided_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, related_name="flag_decisions"
+    )
+    decided_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at", "-pk"]
+        default_permissions = ("view",)
+        constraints = [
+            models.UniqueConstraint(
+                fields=["book", "reporter"],
+                condition=models.Q(state="open"),
+                name="one_open_flag_per_reporter",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.book_id} flagged by {self.reporter_id}"

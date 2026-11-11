@@ -11,7 +11,7 @@ Implements FR-5 (checkout and place order) on the Django/PostgreSQL application.
 3. Address and card are validated on the server before any gateway call: the address must not be blank, the card must be 13-19 digits with a valid Luhn check digit, the expiry must be `MM/YY` and not in the past, and the security code must be 3-4 digits.
 4. Checkout runs in one database transaction: the cart's books are row-locked and re-checked for approval, an active seller and enough stock; the card is charged; the order is created with status **Paid**; each `OrderItem` stores the unit price at purchase time; stock is decremented; and the cart is emptied.
 
-   If the gateway declines the card, nothing is written: no order, no stock change and the cart stays intact so the buyer can retry.
+   If the gateway declines the card, the payment transaction rolls back (no stock change, no cart change) and an order with status **Payment Failed** is written outside it, with the attempted line items, so the decline is visible and the buyer can retry. No confirmation is sent for that order.
 5. The confirmation page shows the order id, books, copies, total paid, status and shipping address. It is reachable only by the buyer who owns the order; anyone else gets a 404.
 
 An empty cart redirects back to the cart with a message. So does a cart holding an item that is suspended, removed, has an inactive seller or now has fewer copies than the cart requests. Availability and quantity are re-checked inside the transaction, so a copy cannot be oversold.
@@ -70,7 +70,7 @@ Local validation: Python 3.12.10, Django 5.2.18, in-memory SQLite override used 
 | FR-5_UT02 | `test_invalid_card_number_is_rejected`, `test_invalid_expiry_is_rejected`, `test_invalid_security_code_is_rejected` | Shows "Invalid card number." for `1234` and a bad check digit |
 | FR-5_UT03 | `test_total_is_subtotal_plus_tax_and_shipping` | 500 + 25 + 50 = 575, stored on the order |
 | FR-5_IT01 | `test_successful_payment_creates_a_paid_order_and_clears_the_cart` | Order status `Paid` in the database |
-| FR-5_IT02 | `test_declined_card_creates_no_order_and_keeps_the_cart` | No order, no stock change, cart retained |
+| FR-5_IT02 | `test_declined_card_records_a_payment_failed_order_and_keeps_the_cart` | Order status `Payment Failed`, no stock change, cart retained |
 | FR-5_IT03 | `test_stock_is_decremented_after_payment` | 10 in stock, buy 1, stock is 9 |
 | FR-5_ST01 | `test_confirmation_page_shows_order_id_and_total` | Confirmation shows order id, total, address |
 | FR-5_ST02 | `test_second_buyer_of_the_last_copy_is_told_it_sold_out` | Second buyer gets no order and a stock message |

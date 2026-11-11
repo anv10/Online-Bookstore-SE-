@@ -89,6 +89,10 @@ def checkout(request):
 @login_required
 @require_POST
 def apply_coupon(request):
+    existing = request.session.get(coupons.SESSION_KEY)
+    if existing:
+        messages.error(request, "Only one coupon can be applied per order.")
+        return redirect("checkout")
     try:
         coupon = coupons.find(request.POST.get("code", ""))
         summary = checkout_service.build_summary(

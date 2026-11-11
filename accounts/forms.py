@@ -13,25 +13,34 @@ PHONE_RE = re.compile(r"^\+?\d{7,15}$")
 
 
 class RegistrationForm(forms.Form):
-    identifier = forms.CharField(label="Email or phone number", max_length=254)
+    email = forms.EmailField(
+        label="Email address",
+        max_length=254,
+        error_messages={
+            "required": "Email address is required",
+            "invalid": "Enter a valid email address",
+        },
+    )
+    phone = forms.CharField(
+        label="Phone number",
+        max_length=32,
+        error_messages={"required": "Phone number is required"},
+    )
     password = forms.CharField(widget=forms.PasswordInput, strip=False)
     confirm_password = forms.CharField(widget=forms.PasswordInput, strip=False)
 
-    def clean_identifier(self):
-        value = self.cleaned_data["identifier"].strip()
-        if "@" in value:
-            forms.EmailField().clean(value)
-            value = value.lower()
-            if User.objects.filter(email__iexact=value).exists():
-                raise ValidationError("An account with this email already exists.")
-            self.kind = "email"
-        else:
-            value = re.sub(r"[\s-]", "", value)
-            if not PHONE_RE.match(value):
-                raise ValidationError("Enter a valid email address or phone number.")
-            if User.objects.filter(phone=value).exists():
-                raise ValidationError("An account with this phone number already exists.")
-            self.kind = "phone"
+    def clean_email(self):
+        value = self.cleaned_data["email"].strip().lower()
+        if User.objects.filter(email__iexact=value).exists():
+            raise ValidationError("An account with this email already exists.")
+        return value
+
+    def clean_phone(self):
+        value = re.sub(r"[\s-]", "", self.cleaned_data["phone"])
+        if not PHONE_RE.match(value):
+            raise ValidationError("Enter a valid phone number.")
+        if User.objects.filter(phone=value).exists():
+            raise ValidationError("An account with this phone number already exists.")
         return value
 
     def clean(self):
@@ -40,7 +49,7 @@ class RegistrationForm(forms.Form):
         if password and password != data.get("confirm_password"):
             self.add_error("confirm_password", "Passwords do not match.")
         elif password:
-            temp = User(**{getattr(self, "kind", "email"): data.get("identifier")})
+            temp = User(email=data.get("email"), phone=data.get("phone"))
             try:
                 password_validation.validate_password(password, temp)
                 if not (re.search(r"[A-Za-z]", password) and re.search(r"\d", password)):
@@ -50,16 +59,18 @@ class RegistrationForm(forms.Form):
         return data
 
     def save(self):
-        ident = self.cleaned_data["identifier"]
-        password = self.cleaned_data["password"]
         try:
             with transaction.atomic():
-                if self.kind == "email":
-                    return User.objects.create_user(email=ident, password=password)
-                return User.objects.create_user(password=password, phone=ident)
+                return User.objects.create_user(
+                    email=self.cleaned_data["email"],
+                    phone=self.cleaned_data["phone"],
+                    password=self.cleaned_data["password"],
+                )
         except IntegrityError:
-            label = "email" if self.kind == "email" else "phone number"
-            self.add_error("identifier", f"An account with this {label} already exists.")
+            if User.objects.filter(email__iexact=self.cleaned_data["email"]).exists():
+                self.add_error("email", "An account with this email already exists.")
+            if User.objects.filter(phone=self.cleaned_data["phone"]).exists():
+                self.add_error("phone", "An account with this phone number already exists.")
             return None
 
 
@@ -129,3 +140,20 @@ class SetNewPasswordForm(forms.Form):
         self.user.set_password(self.cleaned_data["password"])
         self.user.save(update_fields=["password"])
         return self.user
+
+
+class PasswordResetOTPForm(forms.Form):
+    """Enter the six digit code emailed with the reset link (Test Plan FR-14_UT02)."""
+
+    identifier = forms.CharField(label="Email or phone number", max_length=254)
+    code = forms.RegexField(
+        r"^[0-9]{6}$", max_length=6, label="Six digit code",
+        error_messages={"invalid": "Enter the six digit code from the email."},
+        widget=forms.TextInput(attrs={"autocomplete": "one-time-code", "inputmode": "numeric"}),
+    )
+
+    def get_user(self):
+        value = self.cleaned_data["identifier"].strip()
+        if "@" in value:
+            return User.objects.filter(email__iexact=value, is_active=True).first()
+        return User.objects.filter(phone=re.sub(r"[\s-]", "", value), is_active=True).first()

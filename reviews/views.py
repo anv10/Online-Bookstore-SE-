@@ -21,6 +21,15 @@ def submit_review(request, pk):
     book = _visible_book(pk)
     review = Review.objects.filter(book=book, user=request.user).first()
 
+    # A buyer gets one review per item. Submitting again is refused, and only the
+    # "Edit your review" link (which carries ?edit=1) may change the existing one
+    # (Test Plan FR-10_IT03).
+    editing = request.GET.get("edit") == "1" or request.POST.get("edit") == "1"
+    if review is not None and not editing:
+        if request.method == "POST":
+            messages.error(request, "You have already reviewed this item.")
+        return redirect("book_detail", pk=book.pk)
+
     if review is None and not has_delivered_purchase(request.user, book):
         messages.error(request, "You must purchase this book to review it.")
         return redirect("book_detail", pk=book.pk)

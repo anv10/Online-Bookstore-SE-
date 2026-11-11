@@ -203,12 +203,14 @@ class CheckoutTests(TestCase):
         self.assertNotContains(confirmation, "4242")
 
     # --- declined payment (FR-5_IT02) ---
-    def test_declined_card_creates_no_order_and_keeps_the_cart(self):
+    def test_declined_card_records_a_payment_failed_order_and_keeps_the_cart(self):
         self.add_to_cart()
         response = self.post(card_number=DECLINED_CARD)
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "declined")
-        self.assertFalse(Order.objects.exists())
+        order = Order.objects.get()
+        self.assertEqual(order.status, Order.Status.PAYMENT_FAILED)
+        self.assertEqual(order.items.get().quantity, 1)
         self.assertEqual(CartItem.objects.filter(cart__user=self.buyer).count(), 1)
         self.book.refresh_from_db()
         self.assertEqual(self.book.stock, 5)

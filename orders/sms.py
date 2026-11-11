@@ -43,4 +43,4 @@ def get_gateway():
 def confirmation_text(order):
     count = sum(item.quantity for item in order.items.all())
     copies = "copy" if count == 1 else "copies"
-    return f"Chapter & Co: order #{order.pk} confirmed. {count} {copies}, total Rs {order.total}."
+    return f"Chapter & Co: {order.reference} confirmed. {count} {copies}, total Rs {order.total}."

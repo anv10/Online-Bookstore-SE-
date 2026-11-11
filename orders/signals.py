@@ -10,6 +10,6 @@ from .notifications import queue_confirmation
 
 @receiver(post_save, sender=Order, dispatch_uid="orders.send_confirmation_email")
 def send_confirmation_after_commit(sender, instance, created, **kwargs):
-    if created:
+    if created and instance.status != Order.Status.PAYMENT_FAILED:
         # After commit, so the items exist and a rolled-back order sends nothing.
         transaction.on_commit(partial(queue_confirmation, instance.pk), robust=True)

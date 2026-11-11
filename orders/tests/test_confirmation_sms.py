@@ -51,7 +51,7 @@ class ConfirmationSmsTests(TestCase):
         with self.captureOnCommitCallbacks(execute=True):
             order = self.place_order()
         body = sms.outbox[0]["body"]
-        self.assertIn(f"order #{order.pk}", body)
+        self.assertIn(f"ORD{order.pk:05d}", body)
         self.assertIn("2 copies", body)
         self.assertIn("Rs 825.00", body)
         self.assertNotIn("Reading Lane", body)

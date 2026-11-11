@@ -33,13 +33,19 @@ class ListingCreationTests(TestCase):
         r=self.client.post(reverse("listing_add"),self.data(images=[self.upload(),self.upload("two.png")],seller=self.buyer.pk,status="approved"))
         self.assertRedirects(r,reverse("seller_listings"))
         book=Book.objects.get()
-        self.assertEqual(book.seller,self.seller);self.assertEqual(book.status,"pending")
+        self.assertEqual(book.seller,self.seller);self.assertEqual(book.status,"approved")
         self.assertEqual(book.images.count(),2)
         self.assertTrue(book.cover_url.endswith(".png"))
-        self.assertNotContains(self.client.get(reverse("catalog")),book.title)
-        book.status="approved";book.save(update_fields=["status"])
         self.assertContains(self.client.get(reverse("catalog")),book.title)
         self.assertContains(self.client.get(reverse("catalog")),book.cover_url)
+
+    def test_a_newly_added_listing_is_searchable_by_a_buyer_immediately(self):
+        self.client.post(reverse("listing_add"),self.data(title="Deep Work",isbn="9780261103344"))
+        self.client.force_login(self.buyer)
+        response=self.client.get(reverse("catalog"),{"q":"Deep Work"})
+        self.assertContains(response,"Deep Work")
+        self.assertContains(self.client.get(reverse("catalog")),"Deep Work")
+        self.assertEqual(self.client.get(reverse("book_detail",args=[Book.objects.get().pk])).status_code,200)
 
     def test_listing_without_optional_images_and_isbn10(self):
         self.client.post(reverse("listing_add"),self.data(isbn="0261103342"))

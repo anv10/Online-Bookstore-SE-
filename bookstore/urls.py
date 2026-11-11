@@ -23,7 +23,7 @@ from django.urls import include, path
 from bookstore.views import support
 from cart.views import cart_add, cart_detail, cart_remove, cart_update
 from catalog import moderation
-from catalog.views import book_detail, catalog, listing_add, listing_edit, listing_remove, seller_listings
+from catalog.views import book_detail, catalog, flag_listing, listing_add, listing_edit, listing_remove, seller_listings
 from orders.seller_views import (
     seller_order_deliver,
     seller_order_detail,
@@ -41,6 +41,7 @@ urlpatterns = [
     path("support/", support, name="support"),
     path("books/<int:pk>/", book_detail, name="book_detail"),
     path("books/<int:pk>/review/", submit_review, name="review_submit"),
+    path("books/<int:pk>/flag/", flag_listing, name="flag_listing"),
     path("seller/new/", listing_add, name="listing_add"),
     path("seller/", seller_listings, name="seller_listings"),
     path("seller/<int:pk>/edit/", listing_edit, name="listing_edit"),

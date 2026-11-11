@@ -47,6 +47,7 @@ class Coupon(models.Model):
 class Order(models.Model):
     class Status(models.TextChoices):
         PENDING = "pending", "Placed"
+        PAYMENT_FAILED = "payment_failed", "Payment Failed"
         PAID = "paid", "Paid"
         SHIPPED = "shipped", "Shipped"
         OUT_FOR_DELIVERY = "out_for_delivery", "Out for delivery"
@@ -62,6 +63,11 @@ class Order(models.Model):
     tracking_reference = models.CharField(max_length=64, blank=True, db_index=True)
     shipping_address = EncryptedTextField()
     created_at = models.DateTimeField(auto_now_add=True)
+
+    @property
+    def reference(self):
+        """Carrier-facing order number in the ORD00012 form the Test Plan prints (FR-6_UT03)."""
+        return f"ORD{self.pk:05d}"
 
     @property
     def refunded_total(self):

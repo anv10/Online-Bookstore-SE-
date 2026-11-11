@@ -8,8 +8,8 @@ Implements FR-12 for listings, using the current Django/PostgreSQL application s
 2. Configure EMAIL_HOST, EMAIL_PORT, EMAIL_HOST_USER, EMAIL_HOST_PASSWORD, EMAIL_USE_TLS and DEFAULT_FROM_EMAIL in your environment, using a TLS-enabled SMTP provider. No console email backend is used, because verification codes must not be written to logs. Do not commit credentials. Verify delivery in the target environment before use.
 3. Provision trusted moderators outside public registration. They need an active account with an email, `is_staff=True`, and the `catalog.change_book` permission. Superusers also qualify. Staff status alone and permission alone are each insufficient.
 4. Sign in and visit `/moderation/`. Request a six digit email code and verify it. The code expires after ten minutes, is single-use, and is bound to the requesting session. Five failed guesses exhaust a code. Requests are limited to five per account per hour across sessions. Successful verification grants access to moderation for thirty minutes in that session; logout or expiry requires verification again.
-5. The queue defaults to pending listings. Review book details and images, select Approve, Suspend or Remove, enter a reason, and submit. Filtering also allows review of approved or suspended listings. Removed listings cannot be reinstated through these endpoints.
-6. Approval requires an active seller. Suspension/removal hides the listing from catalog and detail pages. Removal is a status change, preserving the row and historical order references.
+5. Sellers publish a new listing directly, so the queue's default Pending tab is usually empty. Review approved listings, or open the "Reported by buyers" tab, select Approve, Suspend or Remove, enter a reason, and submit. Filtering also allows review of pending or suspended listings. Removed listings cannot be reinstated through these endpoints.
+6. Approval requires an active seller. Suspension/removal hides the listing from catalog and detail pages. Removal is a status change, preserving the row and historical order references. A report (FR-12_ST01) is accepted from the listing page when a signed-in buyer supplies a reason; open reports are settled when the listing is rejected (upheld) and stay open if it is approved.
 7. Each changed status creates one ModerationEvent with actor, target, old/new status, reason and timestamp in the same transaction. Duplicate/stale actions are rejected without another event. Sellers see their own latest twenty decision notifications on their listings page, including removed books. Other sellers cannot see those notices.
 
 Status is read-only in the existing Django BookAdmin and hard deletion is disabled there, so its form cannot bypass decision reasons, verification and audit creation. Challenge records are not exposed in Django admin. Audit events have no application write/delete endpoints. Production database access and backup/retention policies must protect the underlying audit table (SEC-32); database owners can still change database records directly.
@@ -26,7 +26,7 @@ The feature adds request-level tests for authorization, email verification, expi
 | FR-12_UT03 | test_reason_invalid_target_and_stale_decision_rejected | UI uses Suspend/Remove rather than a separate Reject action |
 | FR-12_IT02 | test_order_history_survives_moderation_removal | Soft removal preserves the OrderItem FK |
 | FR-12_IT03 | test_approve_suspend_remove_are_audited_and_hide_listing | Events include admin, listing, reason, time and both states |
-| FR-12_ST01 | test_approve_suspend_remove_are_audited_and_hide_listing | Pending queue is available; flagged/report workflow is not implemented |
+| FR-12_ST01 | test_flags.py: report, flagged queue, rejection hides listing, upholding settled | Buyer report form, queue tab, and report resolution are implemented |
 | FR-12_ST02 | test_anonymous_and_non_admin_access; test_permission_alone_and_staff_alone_do_not_grant_admin_access | Server-side access checks on every endpoint |
 | FR-12_UT01 / IT01 | Outside issue #19 | Account suspension/removal belongs to teammate issue #20 |
 
@@ -36,7 +36,7 @@ Original submitted test plan statuses remain Pending. This addendum reports auto
 
 - UC16 owner notification is an in-app seller notice, not an outbound moderation email. OTP verification does use email.
 - The second factor protects these moderation endpoints. Other pre-existing Django admin functions do not gain MFA in this change; do not claim SEC-14 for the entire application.
-- No flagged-report/reject workflow is added; the issue's Pending/Approve/Suspend/Remove workflow is implemented.
+- Sellers publish directly; moderation is post-publication. The report path lets buyers bring a listing back to the queue.
 - Staff provisioning uses Django staff + permission checks, matching existing permission-based seller provisioning; public users cannot grant themselves these privileges.
 - Real SMTP delivery, PostgreSQL migrations/tests/locking, Chrome/Firefox/Safari/Edge and mobile checks, deployment TLS, protected audit storage and human owner review remain unverified. Keep the PR draft until required validation and review are complete.
 - Assigned team member submission and human review remain separate steps; automated checks do not represent a human review.

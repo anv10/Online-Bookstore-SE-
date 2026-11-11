@@ -111,13 +111,16 @@ class CouponTests(TestCase):
         self.make_coupon(code="ONCE", max_uses=1, times_used=1)
         self.assertContains(self.apply("ONCE"), "reached its usage limit")
 
-    def test_applying_a_second_coupon_replaces_the_first(self):
+    def test_applying_a_second_coupon_is_rejected(self):
         self.make_coupon()
         self.make_coupon(code="FLAT100", kind=Coupon.Kind.FIXED, value="100")
         self.apply("SAVE10")
-        summary = self.apply("FLAT100").context["summary"]
-        self.assertEqual(summary["coupon"].code, "FLAT100")
-        self.assertEqual(summary["discount"], Decimal("100.00"))
+        response = self.apply("FLAT100")
+        self.assertContains(response, "Only one coupon can be applied per order.")
+        summary = response.context["summary"]
+        self.assertEqual(summary["coupon"].code, "SAVE10")
+        self.assertEqual(summary["discount"], Decimal("40.00"))
+        self.assertEqual(self.client.session[coupons.SESSION_KEY], "SAVE10")
 
     def test_remove_coupon_restores_the_full_total(self):
         self.make_coupon()
@@ -168,7 +171,7 @@ class CouponTests(TestCase):
         )
         coupon.refresh_from_db()
         self.assertEqual(coupon.times_used, 0)
-        self.assertFalse(Order.objects.exists())
+        self.assertEqual(Order.objects.get().status, Order.Status.PAYMENT_FAILED)
 
     def test_coupon_used_up_before_payment_blocks_the_order(self):
         coupon = self.make_coupon(max_uses=1)

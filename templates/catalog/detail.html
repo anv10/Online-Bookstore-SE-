@@ -50,11 +50,22 @@
     {% endif %}
   </div>
 </section>
+{% if user.is_authenticated %}
+<details class="report">
+  <summary>Report this listing</summary>
+  <form method="post" action="{% url 'flag_listing' book.pk %}">
+    {% csrf_token %}
+    <label for="flag-reason">What is wrong with this listing?</label>
+    <textarea id="flag-reason" name="reason" rows="2" maxlength="1000" required></textarea>
+    <button class="button small">Send report</button>
+  </form>
+</details>
+{% endif %}
 <section class="reviews" aria-label="Reviews">
   <div class="section-head">
     <h2>Reviews</h2>
     {% if user_review %}
-      <a class="button small" href="{% url 'review_submit' book.pk %}">Edit your review</a>
+      <a class="button small" href="{% url 'review_submit' book.pk %}?edit=1">Edit your review</a>
     {% elif can_review %}
       <a class="button small" href="{% url 'review_submit' book.pk %}">Write a review</a>
     {% endif %}

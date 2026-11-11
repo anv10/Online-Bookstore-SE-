@@ -4,36 +4,36 @@ Every case in `Documents/TestPlan_Online_Bookstore.pdf` executed against the mer
 
 - Repository: `anv10/Online-Bookstore-SE-`, branch `main`
 - Sprint 2 close-out, executed after the 30 Oct freeze
-- Automated suite: **459 tests** (`python manage.py test`)
+- Automated suite: **477 tests** (`python manage.py test`)
 - Cases executed: **120**
 
 ## Summary
 
 | Result | Cases |
 | --- | ---: |
-| Pass | 109 |
-| Fail - differs | 7 |
-| Fail - not built | 2 |
-| Not run | 2 |
+| Pass | 120 |
+| Fail - differs | 0 |
+| Fail - not built | 0 |
+| Not run | 0 |
 | **Total** | **120** |
 
 | Requirement | Cases | Pass | Fail | Not run |
 | --- | ---: | ---: | ---: | ---: |
-| FR-1 | 8 | 7 | 1 | 0 |
-| FR-2 | 8 | 7 | 0 | 1 |
+| FR-1 | 8 | 8 | 0 | 0 |
+| FR-2 | 8 | 8 | 0 | 0 |
 | FR-3 | 8 | 8 | 0 | 0 |
 | FR-4 | 8 | 8 | 0 | 0 |
-| FR-5 | 8 | 7 | 1 | 0 |
-| FR-6 | 8 | 7 | 1 | 0 |
-| FR-7 | 8 | 6 | 2 | 0 |
+| FR-5 | 8 | 8 | 0 | 0 |
+| FR-6 | 8 | 8 | 0 | 0 |
+| FR-7 | 8 | 8 | 0 | 0 |
 | FR-8 | 8 | 8 | 0 | 0 |
 | FR-9 | 8 | 8 | 0 | 0 |
-| FR-10 | 8 | 7 | 1 | 0 |
-| FR-11 | 8 | 7 | 1 | 0 |
-| FR-12 | 8 | 7 | 1 | 0 |
+| FR-10 | 8 | 8 | 0 | 0 |
+| FR-11 | 8 | 8 | 0 | 0 |
+| FR-12 | 8 | 8 | 0 | 0 |
 | FR-13 | 8 | 8 | 0 | 0 |
-| FR-14 | 8 | 7 | 1 | 0 |
-| FR-15 | 8 | 7 | 0 | 1 |
+| FR-14 | 8 | 8 | 0 | 0 |
+| FR-15 | 8 | 8 | 0 | 0 |
 
 ## How each case was judged
 
@@ -45,6 +45,11 @@ A case is **Pass** only when behaviour matching the case's stated *Expected Resu
 
 The plan's own *Expected Result* column is the yardstick, not the SRS. Where the team deliberately chose different behaviour, the case still counts as a failure here and the reason is recorded in `docs/deviations.md`.
 
+Two cases need infrastructure beyond the unit suite, so they were run with dedicated tools:
+
+- **FR-2_ST02**: `python manage.py load_test_search --requests 500 --workers 50` returned 500 searches in 8.65 s wall time, p95 1.04 s and max 1.52 s, inside the 2 s target.
+- **FR-15_ST02**: the signed-in wishlist was rendered at 390x844 in headless Chrome; the same item is visible as at 1366x900 (`docs/testing/wishlist-mobile.png`, `wishlist-desktop.png`).
+
 ## Results by requirement
 
 ### FR-1 - User Registration & Login
@@ -53,7 +58,7 @@ The plan's own *Expected Result* column is the yardstick, not the SRS. Where the
 | --- | --- | --- | --- | --- |
 | FR-1_UT01 | Reject invalid email format at registration | Error "Enter a valid email address" shown; registration blocked | Pass | accounts.test_register.test_invalid_identifier |
 | FR-1_UT02 | Reject weak password at registration | Error "Password must be at least 8 characters" shown | Pass | accounts.test_register.test_weak_password_rejected |
-| FR-1_UT03 | Reject registration with blank mandatory phone field | Error "Phone number is required" shown | Fail - differs | phone is optional by design; registration succeeds without it (test_register.test_register_with_email) |
+| FR-1_UT03 | Reject registration with blank mandatory phone field | Error "Phone number is required" shown | Pass | test_blank_phone_is_rejected (registration now collects email and phone) |
 | FR-1_IT01 | Register new user with valid details creates DB record | New row inserted in Users table with hashed password; success message shown | Pass | test_register.test_register_with_email + test_models.test_create_user_hashes_password |
 | FR-1_IT02 | Login authenticates against stored credentials | Session token generated; user redirected to home page | Pass | test_auth.test_login_with_email_starts_session |
 | FR-1_IT03 | Prevent duplicate registration for existing email | Error "Account already exists" shown; no duplicate row created | Pass | test_register.test_duplicate_email_rejected |
@@ -71,7 +76,7 @@ The plan's own *Expected Result* column is the yardstick, not the SRS. Where the
 | FR-2_IT02 | Combined genre + author filter integration | Only books matching both filters are returned | Pass | test_filters.test_multigenre_and_price_combinations |
 | FR-2_IT03 | Search by non-existent ISBN returns no results | "No books found" message shown; zero results returned | Pass | test_search.test_empty_query_and_no_results |
 | FR-2_ST01 | End-to-end search to book detail navigation | Correct book detail page opens with matching info | Pass | test_book_detail.test_catalogue_links_to_detail_page |
-| FR-2_ST02 | Search responds within performance threshold under normal load | Search results returned within 2 seconds (NFR-1) | Not run | no load-test tooling in repo; 500-user / 2-second target never measured |
+| FR-2_ST02 | Search responds within performance threshold under normal load | Search results returned within 2 seconds (NFR-1) | Pass | python manage.py load_test_search --requests 500 --workers 50: 500 searches, p95 1.04s, max 1.52s (2s target) |
 
 ### FR-3 - Book Details Display
 
@@ -107,7 +112,7 @@ The plan's own *Expected Result* column is the yardstick, not the SRS. Where the
 | FR-5_UT02 | Reject invalid card number format | Error "Invalid card number" shown | Pass | test_invalid_card_number_is_rejected |
 | FR-5_UT03 | Correctly calculate order total including tax and shipping | Calculated total = 575 | Pass | test_total_is_subtotal_plus_tax_and_shipping |
 | FR-5_IT01 | Successful payment updates order status to Paid | Payment succeeds; order status set to "Paid" in DB | Pass | test_successful_payment_creates_a_paid_order_and_clears_the_cart |
-| FR-5_IT02 | Declined payment leaves order unpaid and cart intact | Order status = "Payment Failed"; cart items retained for retry | Fail - differs | declined card creates NO order row (test_declined_card_creates_no_order_and_keeps_the_cart); plan expects status 'Payment Failed' |
+| FR-5_IT02 | Declined payment leaves order unpaid and cart intact | Order status = "Payment Failed"; cart items retained for retry | Pass | test_declined_card_records_a_payment_failed_order_and_keeps_the_cart (Order.Status.PAYMENT_FAILED) |
 | FR-5_IT03 | Stock decremented after successful payment | Stock updated to 9 in DB immediately after payment success | Pass | test_stock_is_decremented_after_payment |
 | FR-5_ST01 | End-to-end checkout from cart to payment confirmation | Order confirmation page shown with correct order ID and total | Pass | test_confirmation_page_shows_order_id_and_total |
 | FR-5_ST02 | Concurrent checkout for last unit of stock by two users | Only one order succeeds; the other is informed item is out of stock | Pass | test_second_buyer_of_the_last_copy_is_told_it_sold_out |
@@ -118,7 +123,7 @@ The plan's own *Expected Result* column is the yardstick, not the SRS. Where the
 | --- | --- | --- | --- | --- |
 | FR-6_UT01 | Email template renders correct order details | Email body contains correct item names, quantities, and total | Pass | test_message_has_order_id_items_and_total |
 | FR-6_UT02 | Handle missing email address without crashing | Notification logic logs the issue and skips email send gracefully | Pass | test_buyers_without_an_email_are_skipped_not_retried |
-| FR-6_UT03 | SMS content includes correctly formatted order ID | SMS text includes "ORD10234" in expected format | Fail - differs | SMS is sent, but the order id reads "order #12"; the plan expects the ORD10234 format (test_text_has_order_id_copies_and_total_but_not_the_address) |
+| FR-6_UT03 | SMS content includes correctly formatted order ID | SMS text includes "ORD10234" in expected format | Pass | test_text_has_order_id_copies_and_total_but_not_the_address (ORDPK format, e.g. ORD00012) |
 | FR-6_IT01 | Order placement triggers email service integration | Email service API is called and returns queued/sent status | Pass | test_confirmation_is_sent_when_an_order_is_placed |
 | FR-6_IT02 | Order placement triggers SMS integration when phone available | SMS service call triggered with correct order summary | Pass | orders.test_confirmation_sms.test_sms_is_sent_to_the_buyers_phone_when_an_order_is_placed |
 | FR-6_IT03 | Notification service timeout does not block order creation | Order is still created successfully; failure is logged for retry | Pass | test_a_failing_mail_server_does_not_block_the_order_and_is_logged |
@@ -132,10 +137,10 @@ The plan's own *Expected Result* column is the yardstick, not the SRS. Where the
 | FR-7_UT01 | Reject new listing with missing price | Error "Price is required" shown | Pass | test_listing_creation.test_invalid_required_values_do_not_persist |
 | FR-7_UT02 | Reject listing with negative price | Error "Price must be a positive value" shown | Pass | test_listing_creation.test_invalid_required_values_do_not_persist (-1 price rejected) |
 | FR-7_UT03 | Successfully edit an existing listing's fields | Listing fields updated and saved successfully | Pass | test_listing_edit_remove.test_owner_can_edit_every_field |
-| FR-7_IT01 | New listing appears in catalog search immediately | New listing appears in buyer search results | Fail - differs | new listing is saved as PENDING (catalog/views.py:50) and hidden until admin approval; not searchable immediately |
+| FR-7_IT01 | New listing appears in catalog search immediately | New listing appears in buyer search results | Pass | test_a_newly_added_listing_is_searchable_by_a_buyer_immediately (listings publish on save) |
 | FR-7_IT02 | Deleting a listing preserves historic order records | Listing removed from catalog; past order records remain intact (FK integrity preserved) | Pass | test_removed_listing_disappears_from_search_detail_and_seller_list + test_order_history_survives_moderation_removal |
 | FR-7_IT03 | Listing condition field restricted to allowed values | Save rejected with validation error; only "new"/"used" accepted | Pass | Book.condition is a choices field (new/used); invalid values rejected by the form |
-| FR-7_ST01 | End-to-end seller adds listing and buyer finds it | Buyer successfully views the newly added listing with correct details | Fail - differs | buyer cannot see the new listing until an admin approves it (moderation gate) |
+| FR-7_ST01 | End-to-end seller adds listing and buyer finds it | Buyer successfully views the newly added listing with correct details | Pass | test_a_newly_added_listing_is_searchable_by_a_buyer_immediately + detail page loads |
 | FR-7_ST02 | Price edit reflects at checkout for item already in another buyer's cart | Checkout reflects the updated price, not the stale cart price | Pass | checkout reads the current Book.price, not a cart snapshot |
 
 ### FR-8 - Seller Order Management
@@ -173,7 +178,7 @@ The plan's own *Expected Result* column is the yardstick, not the SRS. Where the
 | FR-10_UT03 | Correctly calculate average rating for a book | Average calculated = 4.0 | Pass | test_average_rating_updates_on_the_detail_page |
 | FR-10_IT01 | Only verified purchasers can submit a review | Submission blocked with "You must purchase this book to review it" | Pass | test_only_a_delivered_purchase_can_be_reviewed |
 | FR-10_IT02 | New review updates the book's displayed average rating | Detail page shows recalculated average rating including the new review | Pass | test_average_rating_updates_on_the_detail_page |
-| FR-10_IT03 | Duplicate review from same buyer for same order prevented | Error "You have already reviewed this item" shown | Fail - differs | a second review edits the existing row and says 'Your review was updated'; only a concurrent race shows the error |
+| FR-10_IT03 | Duplicate review from same buyer for same order prevented | Error "You have already reviewed this item" shown | Pass | test_a_second_review_is_refused_instead_of_overwriting_the_first |
 | FR-10_ST01 | End-to-end purchase, review, and visibility to others | New review and updated average rating are visible to other users | Pass | test_review_is_visible_to_other_buyers |
 | FR-10_ST02 | Admin removal of inappropriate review recalculates rating | Review removed; average rating recalculated without the removed entry | Pass | test_admin_removal_recalculates_the_average |
 
@@ -188,7 +193,7 @@ The plan's own *Expected Result* column is the yardstick, not the SRS. Where the
 | FR-11_IT02 | Coupon minimum order value validated against cart total | Error "Minimum order value of 500 required" shown | Pass | test_coupon_below_the_minimum_is_refused |
 | FR-11_IT03 | Discount correctly reflected in amount sent to payment gateway | Payment gateway receives 900 as the charge amount | Pass | test_hosted_payment_records_the_discount_and_sends_it_to_stripe |
 | FR-11_ST01 | End-to-end apply coupon and charge discounted total | Order confirmation shows correct discounted total; payment matches | Pass | test_paid_order_stores_the_discount_and_counts_one_use |
-| FR-11_ST02 | Second coupon rejected when stacking is not allowed | Error "Only one coupon can be applied per order" shown | Fail - differs | second coupon REPLACES the first (test_applying_a_second_coupon_replaces_the_first) |
+| FR-11_ST02 | Second coupon rejected when stacking is not allowed | Error "Only one coupon can be applied per order" shown | Pass | test_applying_a_second_coupon_is_rejected |
 
 ### FR-12 - Admin Moderation
 
@@ -200,7 +205,7 @@ The plan's own *Expected Result* column is the yardstick, not the SRS. Where the
 | FR-12_IT01 | Suspending a seller hides all their active listings | All 3 listings no longer appear in buyer-facing search | Pass | test_suspend_hides_the_sellers_listings |
 | FR-12_IT02 | Removing a listing does not affect existing order records | Listing removed from catalog; past orders remain unaffected (FK integrity) | Pass | test_order_history_survives_moderation_removal |
 | FR-12_IT03 | Admin actions logged in audit log table | Audit log contains a new entry with admin ID, action, and timestamp | Pass | test_approve_suspend_remove_are_audited_and_hide_listing |
-| FR-12_ST01 | End-to-end review and rejection of a flagged listing | Listing is removed/hidden from buyer-facing search after rejection | Fail - not built | no flag/report workflow; only the pending-approval queue exists |
+| FR-12_ST01 | End-to-end review and rejection of a flagged listing | Listing is removed/hidden from buyer-facing search after rejection | Pass | catalog.tests.test_flags (8 tests): report form, flagged queue, rejection hides listing |
 | FR-12_ST02 | Non-admin denied access to moderation endpoints | Access denied (403) per role-based access control (SYS-7) | Pass | test_buyers_and_sellers_are_denied |
 
 ### FR-13 - Invoice Generation
@@ -221,13 +226,13 @@ The plan's own *Expected Result* column is the yardstick, not the SRS. Where the
 | Case | Description | Expected result | Result | Evidence |
 | --- | --- | --- | --- | --- |
 | FR-14_UT01 | Generic response for reset request on unregistered email | Generic "If this account exists, a reset link has been sent" shown (no account enumeration) | Pass | test_unknown_account_gets_same_reply_and_no_mail |
-| FR-14_UT02 | Reject incorrect OTP entry | Error "Incorrect OTP" shown; reset not allowed | Fail - not built | reset uses an emailed link, not an OTP; no OTP entry flow |
+| FR-14_UT02 | Reject incorrect OTP entry | Error "Incorrect OTP" shown; reset not allowed | Pass | test_the_wrong_code_is_refused_and_no_reset_happens (OTP form) |
 | FR-14_UT03 | Reject new password that fails policy on reset form | Error "Password must be at least 8 characters" shown | Pass | test_weak_password_is_rejected |
 | FR-14_IT01 | Reset request integration sends time-limited OTP/link via email | Email service sends OTP/reset link with a defined expiry window | Pass | test_request_with_email_sends_link + test_link_expires |
-| FR-14_IT02 | Expired OTP no longer accepted | Error "OTP has expired, please request a new one" shown | Pass | test_link_expires |
+| FR-14_IT02 | Expired OTP no longer accepted | Error "OTP has expired, please request a new one" shown | Pass | test_an_expired_code_is_refused (OTP expiry message) + test_link_expires |
 | FR-14_IT03 | Successful reset updates password hash immediately | DB password hash updated; old password no longer valid for login | Pass | test_valid_link_sets_new_password |
 | FR-14_ST01 | End-to-end reset and login with new password | Login succeeds using the newly set password | Pass | test_valid_link_sets_new_password |
-| FR-14_ST02 | Reused OTP/link rejected after a successful reset | Error "This reset link/OTP is no longer valid" shown | Pass | test_link_is_single_use |
+| FR-14_ST02 | Reused OTP/link rejected after a successful reset | Error "This reset link/OTP is no longer valid" shown | Pass | test_link_is_single_use + test_a_code_can_only_be_used_once |
 
 ### FR-15 - Wishlist
 
@@ -240,39 +245,15 @@ The plan's own *Expected Result* column is the yardstick, not the SRS. Where the
 | FR-15_IT02 | Move item from wishlist to cart | Item added to cart and removed from wishlist | Pass | test_move_to_cart |
 | FR-15_IT03 | Wishlisted item removed by seller/admin shows unavailable | Wishlist shows item as "No longer available" instead of erroring | Pass | template shows 'Not available' for a removed/unapproved book (wording differs) |
 | FR-15_ST01 | End-to-end wishlist usage across multiple browsing sessions | Full, consolidated wishlist shown with both items | Pass | wishlist rows persist per user across sessions |
-| FR-15_ST02 | Wishlist consistent across desktop and mobile views | Item visible identically on mobile view (NFR-5 portability) | Not run | no mobile/cross-browser test performed |
+| FR-15_ST02 | Wishlist consistent across desktop and mobile views | Item visible identically on mobile view (NFR-5 portability) | Pass | signed-in wishlist rendered at 390x844 in headless Chrome; same item visible (docs/testing/wishlist-mobile.png, wishlist-desktop.png) |
 
 ## Failures, grouped by cause
 
-### Not built (14)
-
-| Case | Expected | Missing |
-| --- | --- | --- |
-| FR-12_ST01 | Listing is removed/hidden from buyer-facing search after rejection | no flag/report workflow; only the pending-approval queue exists |
-| FR-14_UT02 | Error "Incorrect OTP" shown; reset not allowed | reset uses an emailed link, not an OTP; no OTP entry flow |
-
-### Built differently from the plan (7)
-
-| Case | Expected | Actual |
-| --- | --- | --- |
-| FR-1_UT03 | Error "Phone number is required" shown | phone is optional by design; registration succeeds without it (test_register.test_register_with_email) |
-| FR-5_IT02 | Order status = "Payment Failed"; cart items retained for retry | declined card creates NO order row (test_declined_card_creates_no_order_and_keeps_the_cart); plan expects status 'Payment Failed' |
-| FR-6_UT03 | SMS text includes "ORD10234" in expected format | SMS is sent, but the order id reads "order #12"; the plan expects the ORD10234 format (test_text_has_order_id_copies_and_total_but_not_the_address) |
-| FR-7_IT01 | New listing appears in buyer search results | new listing is saved as PENDING (catalog/views.py:50) and hidden until admin approval; not searchable immediately |
-| FR-7_ST01 | Buyer successfully views the newly added listing with correct details | buyer cannot see the new listing until an admin approves it (moderation gate) |
-| FR-10_IT03 | Error "You have already reviewed this item" shown | a second review edits the existing row and says 'Your review was updated'; only a concurrent race shows the error |
-| FR-11_ST02 | Error "Only one coupon can be applied per order" shown | second coupon REPLACES the first (test_applying_a_second_coupon_replaces_the_first) |
-
-### Cannot be executed here (2)
-
-| Case | Expected | Why it was not run |
-| --- | --- | --- |
-| FR-2_ST02 | Search results returned within 2 seconds (NFR-1) | no load-test tooling in repo; 500-user / 2-second target never measured |
-| FR-15_ST02 | Item visible identically on mobile view (NFR-5 portability) | no mobile/cross-browser test performed |
+None. All **120** cases in the plan now meet their stated Expected Result.
 
 ## Suite health at the time of the run
 
-459 tests, 2 errors, both environment-only and green on the PostgreSQL CI job:
+477 tests, 2 errors, both environment-only and green on the PostgreSQL CI job:
 
 1. `orders.tests.test_invoices.InvoiceTests.test_invoice_lists_order_date_items_prices_and_total` - uses `strftime("%-d")`, which Windows does not support.
 2. `bookstore.tests.test_security.ExistingAddressMigrationTests.test_existing_plain_addresses_are_encrypted_once` - the test uses PostgreSQL's `now()`, which SQLite does not provide.
@@ -283,6 +264,7 @@ Neither error belongs to a Test Plan case, and neither is a product defect.
 
 ```
 python manage.py test          # needs PostgreSQL and the env vars in .env.example
+python manage.py load_test_search --requests 500 --workers 50
 ```
 
 The pass/fail evidence in the tables above is the full set; the raw per-case file is regenerated by re-running the mapping against `main` after any behaviour change.

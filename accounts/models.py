@@ -1,5 +1,8 @@
+from datetime import timedelta
+
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
+from django.utils import timezone
 
 
 class UserManager(BaseUserManager):
@@ -86,3 +89,26 @@ class AccountAction(models.Model):
 
     def __str__(self):
         return f"{self.get_action_display()} {self.target} by {self.admin}"
+
+
+class PasswordResetOTP(models.Model):
+    """A six digit reset code emailed alongside the reset link (FR-14, Test Plan FR-14_UT02)."""
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="reset_otps")
+    code_hash = models.CharField(max_length=256)
+    expires_at = models.DateTimeField()
+    attempts = models.PositiveSmallIntegerField(default=0)
+    used_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at", "-pk"]
+        default_permissions = ()
+
+    @property
+    def is_live(self):
+        return self.used_at is None and self.expires_at > timezone.now() and self.attempts < MAX_OTP_ATTEMPTS
+
+
+MAX_OTP_ATTEMPTS = 5
+MAX_OTP_LIFETIME = timedelta(minutes=10)

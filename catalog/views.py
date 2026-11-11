@@ -6,7 +6,7 @@ from reviews.models import Review
 from reviews.services import has_delivered_purchase
 
 from .forms import SearchForm
-from .models import Book, BookImage, ModerationEvent
+from .models import Book, BookImage, ListingFlag, ModerationEvent
 from .forms import EditListingForm, ListingForm
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -48,11 +48,12 @@ def listing_add(request):
         with transaction.atomic():
             book = form.save(commit=False)
             book.seller = request.user
-            book.status = Book.Status.PENDING
+            # Sellers publish straight away; moderators review reported listings (Test Plan FR-7_IT01).
+            book.status = Book.Status.APPROVED
             book.save()
             for upload in form.cleaned_data["images"]:
                 BookImage.objects.create(book=book, image=upload)
-        messages.success(request, "Listing saved as Pending approval. It will be public after admin approval.")
+        messages.success(request, "Listing published. Buyers can find it now.")
         return redirect("seller_listings")
     return render(request, "catalog/add.html", {"form": form})
 
@@ -141,3 +142,22 @@ def book_detail(request, pk):
         },
     )
 
+
+
+@login_required
+@require_http_methods(["POST"])
+def flag_listing(request, pk):
+    """Report a listing to the moderators (FR-12_ST01)."""
+    book = get_object_or_404(Book, pk=pk)
+    if book.status != Book.Status.APPROVED or (book.seller and not book.seller.is_active):
+        raise Http404("Book not found")
+    reason = (request.POST.get("reason") or "").strip()
+    if not reason:
+        messages.error(request, "A reason is required to report a listing.")
+        return redirect("book_detail", pk=book.pk)
+    _, created = ListingFlag.objects.get_or_create(book=book, reporter=request.user, state=ListingFlag.State.OPEN, defaults={"reason": reason[:1000]})
+    if created:
+        messages.success(request, "Thanks for the report. A moderator will review this listing.")
+    else:
+        messages.info(request, "You have already reported this listing. A moderator will review it.")
+    return redirect("book_detail", pk=book.pk)

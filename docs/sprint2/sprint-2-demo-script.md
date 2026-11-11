@@ -21,9 +21,9 @@ Recording checklist and a timed script for the Sprint 2 deliverable. The video m
 | --- | --- | --- |
 | 0:00-0:10 | Landing page and footer | "Online Bookstore, Sprint 2. Buyers check out and pay, sellers fulfil orders, admins moderate the platform, and every page links to support." |
 | 0:10-0:25 | Discover page and book details | Search "clean", apply a genre and price filter, open a book and point out price, stock, seller and the existing average rating. |
-| 0:25-0:40 | Seller listings and moderation | As the seller, show a pending listing. As the admin, approve it from the moderation queue (email code if configured) and explain that the reason is audited. |
+| 0:25-0:40 | Seller listings and moderation | As the seller, publish a new listing and show it in search immediately. As a buyer, report it, then as the admin reject it from the "Reported by buyers" tab (email code if configured) and explain that the reason is audited. |
 | 0:40-0:55 | Book details and cart | As the buyer, add two copies, open the cart, change a quantity, show the recalculated total, then open checkout and read out the items, tax, shipping and grand total. |
-| 0:55-1:10 | Checkout | Enter the address, submit the declining sandbox card `4000 0000 0000 0002` and show that the cart survives. Pay with `4242 4242 4242 4242`, any future expiry and any three digits. |
+| 0:55-1:10 | Checkout | Enter the address, submit the declining sandbox card `4000 0000 0000 0002`, show the **Payment Failed** order and that the cart survives. Pay with `4242 4242 4242 4242`, any future expiry and any three digits. |
 | 1:10-1:20 | Confirmation and invoice | Show the order number, total and status Paid, open the invoice, and return to the book to point out the decremented stock. |
 | 1:20-1:30 | Seller orders | As the seller, open the incoming order, mark it shipped, then mark it delivered; point out that the buyer can now review. |
 | 1:30-1:40 | Reviews | As the buyer, open the delivered book, submit a 5-star review with text, and show the new average and review count on the page. |

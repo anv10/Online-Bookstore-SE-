@@ -5,8 +5,8 @@ Implements FR-10 on top of the existing Django/PostgreSQL application. Read alon
 ## Buyer experience
 
 1. A buyer sees the review form link on a book's details page only when an order containing that book has reached the **delivered** state. Pending, paid and shipped orders do not qualify.
-2. The review form accepts a rating from 1 to 5 and optional review text (maximum 2000 characters). The rating is required; text is not.
-3. One review is allowed per buyer per book. Opening the form again edits the same row rather than creating a duplicate.
+2. The review form accepts a rating from 1 to 5 and review text (maximum 2000 characters). Both are required; a blank review is refused.
+3. One review is allowed per buyer per book. A plain second submission is refused with "You have already reviewed this item."; the "Edit your review" link opens the same row with `?edit=1` so a deliberate edit still works.
 4. The details page recalculates the average rating and review count on every request, so a new, edited or removed review is reflected immediately. Reviews show the reviewer's display name, never their email or phone number.
 5. Anonymous visitors are sent to login. A buyer without a delivered purchase is redirected to the book page with "You must purchase this book to review it."
 
@@ -25,11 +25,11 @@ Verified locally with the repository test suite. Run the PostgreSQL CI job befor
 | Submitted test ID | Evidence in `reviews/tests/test_reviews.py` / `orders/tests/test_seller_orders.py` | Limit |
 | --- | --- | --- |
 | FR-10_UT01 | `test_rating_outside_one_to_five_is_rejected` | Rating 0, 6, blank and non-numeric are rejected |
-| FR-10_UT02 | `test_review_text_is_optional` | The issue makes text optional, so a blank review is accepted. This is a documented deviation from the test plan's mandatory-text expectation |
+| FR-10_UT02 | `test_review_text_is_required` | A blank review is refused |
 | FR-10_UT03 | `test_average_rating_updates_on_the_detail_page` | Average of 4, 5, 3 is 4.0 |
 | FR-10_IT01 | `test_only_a_delivered_purchase_can_be_reviewed`, `test_someone_elses_delivered_order_does_not_count` | Delivered is stricter than the test plan's "purchased" wording |
 | FR-10_IT02 | `test_average_rating_updates_on_the_detail_page` | Detail page shows the recalculated average |
-| FR-10_IT03 | `test_review_is_editable_and_stays_a_single_row` and the model's unique constraint | A second submission edits the existing review; the database constraint blocks duplicates |
+| FR-10_IT03 | `test_a_second_review_is_refused_instead_of_overwriting_the_first`, `test_review_is_editable_and_stays_a_single_row` | A plain second submission is refused; the explicit edit link updates the row |
 | FR-10_ST01 | `test_review_is_visible_to_other_buyers` | Another logged-in buyer sees the review and average |
 | FR-10_ST02 | `test_admin_removal_recalculates_the_average` | Django admin deletion recomputes the average |
 
@@ -37,7 +37,6 @@ Additional coverage: hidden/pending listings (404), unknown books (404), login r
 
 ## Deviations and remaining checks
 
-- Review text is optional per issue #18, not mandatory as written in FR-10_UT02.
 - Eligibility is "delivered", not merely "paid", per the issue acceptance criteria.
 - Only the seller of every item in an order can mark that order delivered. Shared orders keep their existing restriction and will be handled with order tracking (#14).
 - Browser, mobile, PostgreSQL locking and TLS/deployment checks remain part of the Sprint 2 validation and review process.

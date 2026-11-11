@@ -16,7 +16,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 from django.core.paginator import Paginator
 
-from .models import AdminChallenge, Book, ModerationEvent
+from .models import AdminChallenge, Book, ListingFlag, ModerationEvent
 
 
 def is_moderator(user):
@@ -111,10 +111,34 @@ def queue(request):
     if not _verified(request):
         return redirect("moderation_verify")
     status = request.GET.get("status", Book.Status.PENDING)
+    if status == "flagged":
+        books = (
+            Book.objects.filter(flags__state=ListingFlag.State.OPEN)
+            .select_related("seller")
+            .distinct()
+            .order_by("created_at", "pk")
+        )
+        return render(
+            request,
+            "catalog/moderation_queue.html",
+            {
+                "page_obj": Paginator(books, 20).get_page(request.GET.get("page")),
+                "selected_status": "flagged",
+                "statuses": list(Book.Status.choices) + [("flagged", "Reported by buyers")],
+            },
+        )
     if status not in Book.Status.values:
         status = Book.Status.PENDING
     books = Book.objects.filter(status=status).select_related("seller").order_by("created_at", "pk")
-    return render(request, "catalog/moderation_queue.html", {"page_obj": Paginator(books, 20).get_page(request.GET.get("page")), "selected_status": status, "statuses": Book.Status.choices})
+    return render(
+        request,
+        "catalog/moderation_queue.html",
+        {
+            "page_obj": Paginator(books, 20).get_page(request.GET.get("page")),
+            "selected_status": status,
+            "statuses": list(Book.Status.choices) + [("flagged", "Reported by buyers")],
+        },
+    )
 
 
 @login_required
@@ -144,6 +168,12 @@ def decide(request, pk):
                 book.status = target
                 book.save(update_fields=["status"])
                 ModerationEvent.objects.create(book=book, admin=request.user, previous_status=previous, new_status=target, reason=form.cleaned_data["reason"])
+                if target != Book.Status.APPROVED:
+                    book.flags.filter(state=ListingFlag.State.OPEN).update(
+                        state=ListingFlag.State.UPHELD,
+                        decided_by=request.user,
+                        decided_at=timezone.now(),
+                    )
                 messages.success(request, "Moderation decision saved.")
                 return redirect("moderation_queue")
     return render(request, "catalog/moderation_decide.html", {"book": book, "form": form, "events": book.moderation_events.select_related("admin")[:20]}, status=status_code)
