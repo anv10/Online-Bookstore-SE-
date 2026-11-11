@@ -4,34 +4,34 @@ Every case in `Documents/TestPlan_Online_Bookstore.pdf` executed against the mer
 
 - Repository: `anv10/Online-Bookstore-SE-`, branch `main`
 - Sprint 2 close-out, executed after the 30 Oct freeze
-- Automated suite: **394 tests** (`python manage.py test`)
+- Automated suite: **459 tests** (`python manage.py test`)
 - Cases executed: **120**
 
 ## Summary
 
 | Result | Cases |
 | --- | ---: |
-| Pass | 97 |
+| Pass | 109 |
 | Fail - differs | 7 |
-| Fail - not built | 14 |
+| Fail - not built | 2 |
 | Not run | 2 |
 | **Total** | **120** |
 
 | Requirement | Cases | Pass | Fail | Not run |
 | --- | ---: | ---: | ---: | ---: |
-| FR-1 | 8 | 6 | 2 | 0 |
+| FR-1 | 8 | 7 | 1 | 0 |
 | FR-2 | 8 | 7 | 0 | 1 |
 | FR-3 | 8 | 8 | 0 | 0 |
 | FR-4 | 8 | 8 | 0 | 0 |
 | FR-5 | 8 | 7 | 1 | 0 |
-| FR-6 | 8 | 6 | 2 | 0 |
+| FR-6 | 8 | 7 | 1 | 0 |
 | FR-7 | 8 | 6 | 2 | 0 |
-| FR-8 | 8 | 7 | 1 | 0 |
-| FR-9 | 8 | 3 | 5 | 0 |
-| FR-10 | 8 | 6 | 2 | 0 |
-| FR-11 | 8 | 6 | 2 | 0 |
+| FR-8 | 8 | 8 | 0 | 0 |
+| FR-9 | 8 | 8 | 0 | 0 |
+| FR-10 | 8 | 7 | 1 | 0 |
+| FR-11 | 8 | 7 | 1 | 0 |
 | FR-12 | 8 | 7 | 1 | 0 |
-| FR-13 | 8 | 6 | 2 | 0 |
+| FR-13 | 8 | 8 | 0 | 0 |
 | FR-14 | 8 | 7 | 1 | 0 |
 | FR-15 | 8 | 7 | 0 | 1 |
 
@@ -58,7 +58,7 @@ The plan's own *Expected Result* column is the yardstick, not the SRS. Where the
 | FR-1_IT02 | Login authenticates against stored credentials | Session token generated; user redirected to home page | Pass | test_auth.test_login_with_email_starts_session |
 | FR-1_IT03 | Prevent duplicate registration for existing email | Error "Account already exists" shown; no duplicate row created | Pass | test_register.test_duplicate_email_rejected |
 | FR-1_ST01 | End-to-end register, logout, re-login | User successfully accesses dashboard after re-login | Pass | test_register.test_register_with_email + test_auth.test_logout_ends_session |
-| FR-1_ST02 | Account lockout warning after repeated failed logins | Warning shown / temporary lockout triggered per security policy | Fail - not built | no lockout/throttle code anywhere; only a generic wrong-password message |
+| FR-1_ST02 | Account lockout warning after repeated failed logins | Warning shown / temporary lockout triggered per security policy | Pass | accounts.test_lockout.test_third_failure_locks_with_a_warning |
 
 ### FR-2 - Book Search
 
@@ -118,9 +118,9 @@ The plan's own *Expected Result* column is the yardstick, not the SRS. Where the
 | --- | --- | --- | --- | --- |
 | FR-6_UT01 | Email template renders correct order details | Email body contains correct item names, quantities, and total | Pass | test_message_has_order_id_items_and_total |
 | FR-6_UT02 | Handle missing email address without crashing | Notification logic logs the issue and skips email send gracefully | Pass | test_buyers_without_an_email_are_skipped_not_retried |
-| FR-6_UT03 | SMS content includes correctly formatted order ID | SMS text includes "ORD10234" in expected format | Fail - not built | no SMS integration; email only |
+| FR-6_UT03 | SMS content includes correctly formatted order ID | SMS text includes "ORD10234" in expected format | Fail - differs | SMS is sent, but the order id reads "order #12"; the plan expects the ORD10234 format (test_text_has_order_id_copies_and_total_but_not_the_address) |
 | FR-6_IT01 | Order placement triggers email service integration | Email service API is called and returns queued/sent status | Pass | test_confirmation_is_sent_when_an_order_is_placed |
-| FR-6_IT02 | Order placement triggers SMS integration when phone available | SMS service call triggered with correct order summary | Fail - not built | no SMS integration; email only |
+| FR-6_IT02 | Order placement triggers SMS integration when phone available | SMS service call triggered with correct order summary | Pass | orders.test_confirmation_sms.test_sms_is_sent_to_the_buyers_phone_when_an_order_is_placed |
 | FR-6_IT03 | Notification service timeout does not block order creation | Order is still created successfully; failure is logged for retry | Pass | test_a_failing_mail_server_does_not_block_the_order_and_is_logged |
 | FR-6_ST01 | End-to-end order placement and email receipt | Confirmation email received within acceptable time window | Pass | test_real_checkout_sends_the_confirmation |
 | FR-6_ST02 | Notification content matches actual order exactly | Item names, prices, and order ID in notification exactly match order record | Pass | test_message_has_order_id_items_and_total |
@@ -149,7 +149,7 @@ The plan's own *Expected Result* column is the yardstick, not the SRS. Where the
 | FR-8_IT02 | Seller cannot access another seller's order records | Access denied / 403 error shown | Pass | test_other_sellers_cannot_open_the_order (404 hides existence) |
 | FR-8_IT03 | Order list correctly joins order, book, and buyer data | Displayed data matches DB join results exactly | Pass | test_detail_shows_items_and_shipping_address |
 | FR-8_ST01 | End-to-end order receipt to shipped status visible to buyer | Buyer sees status update to "Shipped" after seller action | Pass | test_the_seller_takes_an_order_through_every_step_and_the_buyer_sees_it |
-| FR-8_ST02 | Bulk status update across multiple orders completes without partial failure | All 5 orders updated successfully; no partial/inconsistent state | Fail - not built | no bulk/multi-select status action in seller UI or views |
+| FR-8_ST02 | Bulk status update across multiple orders completes without partial failure | All 5 orders updated successfully; no partial/inconsistent state | Pass | test_several_paid_orders_are_shipped_together + test_one_unshippable_order_leaves_the_batch_untouched |
 
 ### FR-9 - Order Tracking
 
@@ -157,19 +157,19 @@ The plan's own *Expected Result* column is the yardstick, not the SRS. Where the
 | --- | --- | --- | --- | --- |
 | FR-9_UT01 | Reject status value outside allowed set | Validation rejects value; only placed/shipped/out for delivery/delivered allowed | Pass | Status choices + transition guards (test_out_for_delivery_only_follows_shipped) |
 | FR-9_UT02 | Handle lookup of non- existent order ID | "Order not found" message shown, no crash | Pass | test_unknown_order_is_not_found |
-| FR-9_UT03 | Correctly compute estimated delivery date | Estimated delivery = Day 5 | Fail - not built | no estimated-delivery/transit calculation |
-| FR-9_IT01 | Tracking page fetches live status from logistics provider API | Current status fetched and displayed matches logistics API response | Fail - not built | no logistics-provider API integration |
-| FR-9_IT02 | Logistics webhook update reflects in order record | Order record updated to "Out for Delivery" in DB | Fail - not built | no webhook endpoint |
-| FR-9_IT03 | Tracking timeline pulled correctly from status log table | All 4 timeline entries displayed in correct chronological order | Fail - not built | no status-history table; tracker is derived from the current status |
+| FR-9_UT03 | Correctly compute estimated delivery date | Estimated delivery = Day 5 | Pass | test_estimated_delivery_is_ship_date_plus_transit (ship date + 5 days) |
+| FR-9_IT01 | Tracking page fetches live status from logistics provider API | Current status fetched and displayed matches logistics API response | Pass | test_tracking_page_applies_the_carrier_status (orders/logistics.py fetch_status) |
+| FR-9_IT02 | Logistics webhook update reflects in order record | Order record updated to "Out for Delivery" in DB | Pass | test_webhook_updates_the_order + test_webhook_rejects_a_bad_signature |
+| FR-9_IT03 | Tracking timeline pulled correctly from status log table | All 4 timeline entries displayed in correct chronological order | Pass | test_timeline_follows_the_status_log_in_order (OrderStatusLog) |
 | FR-9_ST01 | End-to-end tracking from placed to delivered | Each stage is visible and updates correctly on tracking page | Pass | test_the_seller_takes_an_order_through_every_step_and_the_buyer_sees_it |
-| FR-9_ST02 | Tracking page degrades gracefully during logistics API downtime | Last known status shown with a notice, instead of an error/crash | Fail - not built | inapplicable: there is no logistics API to fail |
+| FR-9_ST02 | Tracking page degrades gracefully during logistics API downtime | Last known status shown with a notice, instead of an error/crash | Pass | test_page_degrades_when_the_carrier_is_down |
 
 ### FR-10 - Ratings & Reviews
 
 | Case | Description | Expected result | Result | Evidence |
 | --- | --- | --- | --- | --- |
 | FR-10_UT01 | Reject rating value outside allowed range | Error "Rating must be between 1 and 5" shown | Pass | reviews.test_reviews.test_rating_outside_one_to_five_is_rejected |
-| FR-10_UT02 | Reject empty review text when text is mandatory | Error "Review text is required" shown | Fail - differs | review text is optional by design (test_review_text_is_optional) |
+| FR-10_UT02 | Reject empty review text when text is mandatory | Error "Review text is required" shown | Pass | reviews.test_reviews.test_review_text_is_required |
 | FR-10_UT03 | Correctly calculate average rating for a book | Average calculated = 4.0 | Pass | test_average_rating_updates_on_the_detail_page |
 | FR-10_IT01 | Only verified purchasers can submit a review | Submission blocked with "You must purchase this book to review it" | Pass | test_only_a_delivered_purchase_can_be_reviewed |
 | FR-10_IT02 | New review updates the book's displayed average rating | Detail page shows recalculated average rating including the new review | Pass | test_average_rating_updates_on_the_detail_page |
@@ -185,7 +185,7 @@ The plan's own *Expected Result* column is the yardstick, not the SRS. Where the
 | FR-11_UT02 | Reject expired coupon code | Error "This coupon has expired" shown | Pass | test_expired_coupon_is_rejected |
 | FR-11_UT03 | Reject invalid/non-existent coupon code | Error "Invalid coupon code" shown | Pass | test_unknown_code_shows_an_error_and_changes_nothing |
 | FR-11_IT01 | Coupon usage limit enforced against DB usage count | Error "Coupon usage limit reached" shown; discount not applied | Pass | test_coupon_at_its_usage_limit_is_rejected |
-| FR-11_IT02 | Coupon minimum order value validated against cart total | Error "Minimum order value of 500 required" shown | Fail - not built | Coupon model has no minimum-order-value field |
+| FR-11_IT02 | Coupon minimum order value validated against cart total | Error "Minimum order value of 500 required" shown | Pass | test_coupon_below_the_minimum_is_refused |
 | FR-11_IT03 | Discount correctly reflected in amount sent to payment gateway | Payment gateway receives 900 as the charge amount | Pass | test_hosted_payment_records_the_discount_and_sends_it_to_stripe |
 | FR-11_ST01 | End-to-end apply coupon and charge discounted total | Order confirmation shows correct discounted total; payment matches | Pass | test_paid_order_stores_the_discount_and_counts_one_use |
 | FR-11_ST02 | Second coupon rejected when stacking is not allowed | Error "Only one coupon can be applied per order" shown | Fail - differs | second coupon REPLACES the first (test_applying_a_second_coupon_replaces_the_first) |
@@ -212,9 +212,9 @@ The plan's own *Expected Result* column is the yardstick, not the SRS. Where the
 | FR-13_UT03 | Handle missing tax rate configuration gracefully | Falls back to default/zero tax with a logged warning, no crash | Pass | CHECKOUT_TAX_RATE defaults to 0.05 from env; no crash if unset (no warning logged) |
 | FR-13_IT01 | Invoice auto-generated on successful payment | Invoice record created and linked to the order automatically | Pass | invoice is built on demand from the order; no Invoice table (behaviour matches, storage differs) |
 | FR-13_IT02 | Invoice pulls correct buyer, seller, and item data from multiple tables | All invoice fields match the corresponding DB records exactly | Pass | test_invoice_lists_order_date_items_prices_and_total |
-| FR-13_IT03 | Invoice reflects updated amount after a partial refund | Invoice reflects net payable amount of 800 | Fail - not built | no partial-refund feature and no refund adjustment on the invoice |
+| FR-13_IT03 | Invoice reflects updated amount after a partial refund | Invoice reflects net payable amount of 800 | Pass | test_partial_refund_reduces_the_invoice_net_total |
 | FR-13_ST01 | End-to-end payment to invoice availability | Correct invoice is available to the buyer right after payment success | Pass | test_order_page_links_to_invoice_when_paid |
-| FR-13_ST02 | Multi-seller order invoice itemized per seller | Invoice correctly splits/itemizes charges per seller | Fail - not built | invoice lists all items flat; no per-seller split |
+| FR-13_ST02 | Multi-seller order invoice itemized per seller | Invoice correctly splits/itemizes charges per seller | Pass | test_multi_seller_order_is_itemised_per_seller |
 
 ### FR-14 - Password Reset
 
@@ -248,19 +248,7 @@ The plan's own *Expected Result* column is the yardstick, not the SRS. Where the
 
 | Case | Expected | Missing |
 | --- | --- | --- |
-| FR-1_ST02 | Warning shown / temporary lockout triggered per security policy | no lockout/throttle code anywhere; only a generic wrong-password message |
-| FR-6_UT03 | SMS text includes "ORD10234" in expected format | no SMS integration; email only |
-| FR-6_IT02 | SMS service call triggered with correct order summary | no SMS integration; email only |
-| FR-8_ST02 | All 5 orders updated successfully; no partial/inconsistent state | no bulk/multi-select status action in seller UI or views |
-| FR-9_UT03 | Estimated delivery = Day 5 | no estimated-delivery/transit calculation |
-| FR-9_IT01 | Current status fetched and displayed matches logistics API response | no logistics-provider API integration |
-| FR-9_IT02 | Order record updated to "Out for Delivery" in DB | no webhook endpoint |
-| FR-9_IT03 | All 4 timeline entries displayed in correct chronological order | no status-history table; tracker is derived from the current status |
-| FR-9_ST02 | Last known status shown with a notice, instead of an error/crash | inapplicable: there is no logistics API to fail |
-| FR-11_IT02 | Error "Minimum order value of 500 required" shown | Coupon model has no minimum-order-value field |
 | FR-12_ST01 | Listing is removed/hidden from buyer-facing search after rejection | no flag/report workflow; only the pending-approval queue exists |
-| FR-13_IT03 | Invoice reflects net payable amount of 800 | no partial-refund feature and no refund adjustment on the invoice |
-| FR-13_ST02 | Invoice correctly splits/itemizes charges per seller | invoice lists all items flat; no per-seller split |
 | FR-14_UT02 | Error "Incorrect OTP" shown; reset not allowed | reset uses an emailed link, not an OTP; no OTP entry flow |
 
 ### Built differently from the plan (7)
@@ -269,9 +257,9 @@ The plan's own *Expected Result* column is the yardstick, not the SRS. Where the
 | --- | --- | --- |
 | FR-1_UT03 | Error "Phone number is required" shown | phone is optional by design; registration succeeds without it (test_register.test_register_with_email) |
 | FR-5_IT02 | Order status = "Payment Failed"; cart items retained for retry | declined card creates NO order row (test_declined_card_creates_no_order_and_keeps_the_cart); plan expects status 'Payment Failed' |
+| FR-6_UT03 | SMS text includes "ORD10234" in expected format | SMS is sent, but the order id reads "order #12"; the plan expects the ORD10234 format (test_text_has_order_id_copies_and_total_but_not_the_address) |
 | FR-7_IT01 | New listing appears in buyer search results | new listing is saved as PENDING (catalog/views.py:50) and hidden until admin approval; not searchable immediately |
 | FR-7_ST01 | Buyer successfully views the newly added listing with correct details | buyer cannot see the new listing until an admin approves it (moderation gate) |
-| FR-10_UT02 | Error "Review text is required" shown | review text is optional by design (test_review_text_is_optional) |
 | FR-10_IT03 | Error "You have already reviewed this item" shown | a second review edits the existing row and says 'Your review was updated'; only a concurrent race shows the error |
 | FR-11_ST02 | Error "Only one coupon can be applied per order" shown | second coupon REPLACES the first (test_applying_a_second_coupon_replaces_the_first) |
 
@@ -284,7 +272,7 @@ The plan's own *Expected Result* column is the yardstick, not the SRS. Where the
 
 ## Suite health at the time of the run
 
-394 tests, 2 errors, both environment-only and green on the PostgreSQL CI job:
+459 tests, 2 errors, both environment-only and green on the PostgreSQL CI job:
 
 1. `orders.tests.test_invoices.InvoiceTests.test_invoice_lists_order_date_items_prices_and_total` - uses `strftime("%-d")`, which Windows does not support.
 2. `bookstore.tests.test_security.ExistingAddressMigrationTests.test_existing_plain_addresses_are_encrypted_once` - the test uses PostgreSQL's `now()`, which SQLite does not provide.

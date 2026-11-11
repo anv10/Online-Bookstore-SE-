@@ -118,6 +118,6 @@ If sending fails, the error type is logged and the confirmation stays pending. R
 ## Test Plan results
 
 All 120 cases in `Documents/TestPlan_Online_Bookstore.pdf` have been executed against
-`main` and recorded in [test plan results](docs/testing/test-plan-results.md): 97 pass,
-21 fail and 2 could not be run here. Every pass names the automated test that proves it.
+`main` and recorded in [test plan results](docs/testing/test-plan-results.md): 109 pass,
+9 fail and 2 could not be run here. Every pass names the automated test that proves it.
 The failures are explained one by one in [deviations](docs/deviations.md).
