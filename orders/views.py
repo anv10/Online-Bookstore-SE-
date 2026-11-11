@@ -1,12 +1,16 @@
+import hashlib
+import hmac
+import json
 from decimal import Decimal
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
-from django.http import Http404, HttpResponse, HttpResponseRedirect
+from django.http import Http404, HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
+from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
 
 from cart.models import Cart
@@ -14,8 +18,8 @@ from cart.models import Cart
 from . import checkout as checkout_service
 from . import coupons
 from .forms import CheckoutForm, HostedCheckoutForm
+from . import logistics, tracking
 from .models import Order
-from .tracking import tracking_steps
 
 INVOICE_STATUSES = (
     Order.Status.PAID,
@@ -236,10 +240,47 @@ def order_list(request):
 @login_required
 def order_detail(request, order_id):
     order = _own_order_or_404(request, order_id)
+    live_status, carrier_problem = tracking.refresh_from_carrier(order)
+    if live_status:
+        tracking.advance(order, live_status, note="Carrier update")
+        order.refresh_from_db()
     context = build_invoice(order)
     context["has_invoice"] = order.status in INVOICE_STATUSES
-    context["tracking"] = tracking_steps(order)
+    context["tracking"] = tracking.tracking_steps(order)
+    context["timeline"] = tracking.status_timeline(order)
+    context["estimated_delivery"] = order.estimated_delivery
+    context["carrier_problem"] = carrier_problem
     return render(request, "orders/order_detail.html", context)
+
+
+@csrf_exempt
+@require_POST
+def tracking_webhook(request):
+    """Carrier push updates (FR-9, Test Plan FR-9_IT02).
+
+    Unauthenticated by design (the carrier has no login), so every request is
+    verified with an HMAC of the raw body before anything is read from it.
+    """
+    secret = getattr(settings, "LOGISTICS_WEBHOOK_SECRET", "")
+    if not secret:
+        return HttpResponse(status=503)
+    signature = request.headers.get("X-Carrier-Signature", "")
+    expected = hmac.new(secret.encode(), request.body, hashlib.sha256).hexdigest()
+    if not hmac.compare_digest(expected, signature):
+        return HttpResponse(status=403)
+    try:
+        payload = json.loads(request.body or b"{}")
+    except ValueError:
+        return HttpResponse(status=400)
+    reference = payload.get("reference") or payload.get("tracking_number")
+    order = Order.objects.filter(tracking_reference=reference).first() if reference else None
+    if order is None:
+        return HttpResponse(status=404)
+    status = logistics.normalise_status(payload.get("status"))
+    if not status:
+        return HttpResponse(status=400)
+    tracking.advance(order, status, note="Carrier webhook")
+    return JsonResponse({"ok": True, "order": order.pk, "status": order.status})
 
 
 def _paid_invoice_or_404(request, order_id):

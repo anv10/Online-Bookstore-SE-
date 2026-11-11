@@ -16,7 +16,7 @@ from django.db.models import F
 from cart.models import Cart
 from catalog.models import Book
 
-from . import coupons, payments, stripe_gateway
+from . import coupons, payments, stripe_gateway, tracking
 from .models import Coupon, Order, OrderItem, PendingPayment
 
 logger = logging.getLogger(__name__)
@@ -123,6 +123,7 @@ def place_order(user, shipping_address, card, gateway=None, coupon_code=""):
             coupon_code=coupon.code if coupon else "",
             shipping_address=shipping_address,
         )
+        tracking.log_status(order, Order.Status.PAID, note="Payment received")
         if coupon:
             coupons.redeem(coupon)
         OrderItem.objects.bulk_create(
@@ -253,6 +254,7 @@ def complete_hosted_payment(user, session_id):
                 coupon_code=pending.coupon_code,
                 shipping_address=pending.shipping_address,
             )
+            tracking.log_status(order, Order.Status.PAID, note="Payment received")
             if pending.coupon_code:
                 # Already validated and paid for when the payment started; count the use.
                 Coupon.objects.filter(code=pending.coupon_code).update(times_used=F("times_used") + 1)

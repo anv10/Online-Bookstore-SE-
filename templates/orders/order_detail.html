@@ -27,6 +27,9 @@
 {% elif order.status == 'cancelled' %}
 <p class="notice error">This order was cancelled.</p>
 {% endif %}
+{% if estimated_delivery %}<p class="muted">Estimated delivery: {{ estimated_delivery|date:"j M Y" }}</p>{% endif %}
+{% if order.tracking_reference %}<p class="muted">Tracking reference: {{ order.tracking_reference }}</p>{% endif %}
+{% if carrier_problem %}<p class="notice">{{ carrier_problem }}</p>{% endif %}
 <div class="table-wrap">
   <table>
     <thead><tr><th>Item</th><th>Price</th><th>Copies</th><th>Amount</th></tr></thead>
@@ -38,9 +41,19 @@
     <tfoot>
       {% if order.discount %}<tr><th colspan="3">Discount ({{ order.coupon_code }})</th><td>−₹{{ order.discount }}</td></tr>{% endif %}
       <tr><th colspan="3">Total</th><td>₹{{ total }}</td></tr>
+      {% if refunded_total %}<tr><th colspan="3">Refunded</th><td>−₹{{ refunded_total }}</td></tr>
+      <tr><th colspan="3">Net payable</th><td>₹{{ net_total }}</td></tr>{% endif %}
     </tfoot>
   </table>
 </div>
 <p>Ship to: {{ order.shipping_address|linebreaksbr }}</p>
+{% if timeline %}
+<h2>Order history</h2>
+<ol class="timeline">
+  {% for entry in timeline %}
+  <li>{{ entry.label }}{% if entry.note %} — {{ entry.note }}{% endif %} <span class="muted">{{ entry.at|date:"j M Y H:i" }}</span></li>
+  {% endfor %}
+</ol>
+{% endif %}
 {% if not has_invoice and order.status != 'cancelled' %}<p class="muted">The invoice is available once the order is paid.</p>{% endif %}
 {% endblock %}

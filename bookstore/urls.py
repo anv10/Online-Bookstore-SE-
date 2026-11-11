@@ -32,7 +32,7 @@ from orders.seller_views import (
     seller_orders,
     seller_orders_bulk_ship,
 )
-from orders.views import apply_coupon, checkout, checkout_cancel, checkout_complete, invoice_download, invoice_view, order_confirmation, order_detail, order_list, remove_coupon
+from orders.views import apply_coupon, checkout, checkout_cancel, checkout_complete, invoice_download, invoice_view, order_confirmation, order_detail, order_list, remove_coupon, tracking_webhook
 from reviews.views import submit_review
 from wishlist.views import wishlist_add, wishlist_detail, wishlist_remove, wishlist_to_cart
 
@@ -60,6 +60,7 @@ urlpatterns = [
     path("seller/orders/<int:order_id>/deliver/", seller_order_deliver, name="seller_order_deliver"),
     path("orders/", order_list, name="order_list"),
     path("orders/<int:order_id>/", order_detail, name="order_detail"),
+    path("tracking/webhook/", tracking_webhook, name="tracking_webhook"),
     path("orders/<int:order_id>/invoice/", invoice_view, name="invoice_view"),
     path("orders/<int:order_id>/invoice/download/", invoice_download, name="invoice_download"),
     path("cart/", cart_detail, name="cart"),

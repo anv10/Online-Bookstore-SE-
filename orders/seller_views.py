@@ -7,6 +7,7 @@ from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
+from . import logistics, tracking
 from .models import Order
 
 # Unpaid orders have nothing to fulfil yet, so sellers never see them.
@@ -84,7 +85,19 @@ def seller_order_ship(request, order_id):
             )
         else:
             order.status = Order.Status.SHIPPED
-            order.save(update_fields=["status"])
+            fields = ["status"]
+            if not order.tracking_reference:
+                try:
+                    order.tracking_reference = logistics.create_shipment(order).reference
+                except logistics.ShipmentError:
+                    # A carrier hiccup must never block the seller from fulfilling.
+                    order.tracking_reference = ""
+                else:
+                    fields.append("tracking_reference")
+            order.save(update_fields=fields)
+            tracking.log_status(
+                order, Order.Status.SHIPPED, note="Shipped by the seller", by=request.user
+            )
             messages.success(request, f"Order #{order.pk} marked as shipped.")
     return redirect("seller_order_detail", order_id=order_id)
 
@@ -107,6 +120,7 @@ def seller_order_out_for_delivery(request, order_id):
         else:
             order.status = Order.Status.OUT_FOR_DELIVERY
             order.save(update_fields=["status"])
+            tracking.log_status(order, Order.Status.OUT_FOR_DELIVERY, by=request.user)
             messages.success(request, f"Order #{order.pk} marked as out for delivery.")
     return redirect("seller_order_detail", order_id=order_id)
 
@@ -130,6 +144,7 @@ def seller_order_deliver(request, order_id):
         else:
             order.status = Order.Status.DELIVERED
             order.save(update_fields=["status"])
+            tracking.log_status(order, Order.Status.DELIVERED, by=request.user)
             messages.success(request, f"Order #{order.pk} marked as delivered.")
     return redirect("seller_order_detail", order_id=order_id)
 
@@ -188,7 +203,18 @@ def seller_orders_bulk_ship(request):
             return redirect("seller_orders")
         for order in found.values():
             order.status = Order.Status.SHIPPED
-            order.save(update_fields=["status"])
+            fields = ["status"]
+            if not order.tracking_reference:
+                try:
+                    order.tracking_reference = logistics.create_shipment(order).reference
+                except logistics.ShipmentError:
+                    order.tracking_reference = ""
+                else:
+                    fields.append("tracking_reference")
+            order.save(update_fields=fields)
+            tracking.log_status(
+                order, Order.Status.SHIPPED, note="Shipped in a batch", by=request.user
+            )
         shipped = len(found)
     messages.success(request, f"{shipped} order(s) marked as shipped.")
     return redirect("seller_orders")
