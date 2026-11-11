@@ -87,6 +87,12 @@ def checkout(request):
 def apply_coupon(request):
     try:
         coupon = coupons.find(request.POST.get("code", ""))
+        summary = checkout_service.build_summary(
+            Cart.objects.filter(user=request.user).first()
+        )
+        problem = coupons.minimum_problem(coupon, summary["subtotal"])
+        if problem:
+            raise coupons.CouponError(problem)
     except coupons.CouponError as error:
         messages.error(request, str(error))
     else:

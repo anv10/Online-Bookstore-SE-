@@ -48,11 +48,27 @@ def find(code, for_update=False):
     return _check(coupon)
 
 
+def minimum_problem(coupon, subtotal):
+    """The message to show when ``subtotal`` misses the coupon minimum, or "".
+
+    FR-11 (Test Plan FR-11_IT02): a coupon can require a minimum cart value.
+    """
+    from .checkout import money
+
+    if coupon is None or coupon.min_order_total is None:
+        return ""
+    if money(subtotal) < money(coupon.min_order_total):
+        return f"Minimum order value of ₹{money(coupon.min_order_total)} required."
+    return ""
+
+
 def discount_for(coupon, subtotal):
     """Rupees off ``subtotal``, never more than the subtotal itself."""
     from .checkout import money
 
     if coupon is None:
+        return money(0)
+    if minimum_problem(coupon, subtotal):
         return money(0)
     if coupon.kind == Coupon.Kind.PERCENT:
         amount = money(subtotal * coupon.value / Decimal(100))

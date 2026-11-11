@@ -132,3 +132,63 @@ def seller_order_deliver(request, order_id):
             order.save(update_fields=["status"])
             messages.success(request, f"Order #{order.pk} marked as delivered.")
     return redirect("seller_order_detail", order_id=order_id)
+
+
+# --- Bulk fulfilment (FR-8, Test Plan FR-8_ST02) -----------------------------------------
+# A seller may ship a batch of paid orders at once. The batch is all or nothing: if any
+# selected order cannot be shipped, nothing is written, so a partial update can never
+# leave some orders shipped and others silently skipped.
+
+BULK_LIMIT = 100
+
+
+def _ship_blocker(order, user):
+    """Why ``order`` cannot be marked as shipped by ``user``, or "" when it can."""
+    row = _seller_order(order, user)
+    if not row["items"]:
+        return f"Order #{order.pk} is not yours or does not exist."
+    if order.status != Order.Status.PAID:
+        return f"Order #{order.pk} is not paid, so it cannot be shipped."
+    if row["shared"]:
+        return f"Order #{order.pk} also contains books from other sellers."
+    return ""
+
+
+@login_required
+@require_POST
+def seller_orders_bulk_ship(request):
+    _require_seller(request)
+    ids = [int(value) for value in request.POST.getlist("orders") if str(value).isdigit()]
+    ids = list(dict.fromkeys(ids))
+    if not ids:
+        messages.error(request, "Select at least one order to mark as shipped.")
+        return redirect("seller_orders")
+    if len(ids) > BULK_LIMIT:
+        messages.error(request, f"Select at most {BULK_LIMIT} orders at a time.")
+        return redirect("seller_orders")
+    with transaction.atomic():
+        orders = list(
+            Order.objects.select_for_update()
+            .filter(pk__in=ids)
+            .prefetch_related("items__book")
+        )
+        found = {order.pk: order for order in orders}
+        problems = []
+        for pk in ids:
+            order = found.get(pk)
+            if order is None:
+                problems.append(f"Order #{pk} is not yours or does not exist.")
+                continue
+            blocker = _ship_blocker(order, request.user)
+            if blocker:
+                problems.append(blocker)
+        if problems:
+            # Deliberately before any write: the batch is rejected as a whole.
+            messages.error(request, "Nothing was shipped. " + " ".join(problems))
+            return redirect("seller_orders")
+        for order in found.values():
+            order.status = Order.Status.SHIPPED
+            order.save(update_fields=["status"])
+        shipped = len(found)
+    messages.success(request, f"{shipped} order(s) marked as shipped.")
+    return redirect("seller_orders")
