@@ -59,6 +59,9 @@ AUTHENTICATION_BACKENDS = ["accounts.backends.EmailOrPhoneBackend"]
 LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "catalog"
 LOGOUT_REDIRECT_URL = "login"
+# Temporary lockout after this many consecutive failed sign-ins for one identifier (FR-1).
+LOGIN_MAX_FAILURES = int(os.environ.get("LOGIN_MAX_FAILURES", "3"))
+LOGIN_LOCKOUT_MINUTES = int(os.environ.get("LOGIN_LOCKOUT_MINUTES", "15"))
 
 # Password reset links stop working after one hour.
 PASSWORD_RESET_TIMEOUT = 3600
