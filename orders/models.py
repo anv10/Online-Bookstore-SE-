@@ -61,6 +61,11 @@ class Order(models.Model):
     shipping_address = EncryptedTextField()
     created_at = models.DateTimeField(auto_now_add=True)
 
+    @property
+    def refunded_total(self):
+        """Rupees returned to the buyer so far (FR-13, Test Plan FR-13_IT03)."""
+        return self.refunds.aggregate(total=models.Sum("amount"))["total"] or Decimal("0.00")
+
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="items")
@@ -95,6 +100,30 @@ class PendingPayment(models.Model):
     lines = models.JSONField(default=list)
     order = models.OneToOneField(Order, null=True, blank=True, on_delete=models.SET_NULL, related_name="payment")
     created_at = models.DateTimeField(auto_now_add=True)
+
+
+class Refund(models.Model):
+    """Money returned to the buyer. Partial refunds reduce what the invoice asks for."""
+
+    order = models.ForeignKey(Order, on_delete=models.PROTECT, related_name="refunds")
+    amount = models.DecimalField(
+        max_digits=10, decimal_places=2, validators=[MinValueValidator(Decimal("0.01"))]
+    )
+    reason = models.CharField(max_length=500, blank=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.PROTECT,
+        related_name="refunds_recorded",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at", "-pk"]
+
+    def __str__(self):
+        return f"Refund {self.amount} on order #{self.order_id}"
 
 
 class OrderConfirmation(models.Model):
