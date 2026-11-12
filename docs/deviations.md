@@ -10,11 +10,7 @@ Sources: the SRS, Test Plan and architecture diagram in `Documents/`, the issues
 
 | Ref | What the documents say | What we did | Why |
 | --- | --- | --- | --- |
-| NFR-7 | 2-week sprints | 1-week sprints. The Sprint 1 video was due 23 Oct and the Sprint 2 video was due 30 Oct (issues #31, #32). | The course guide sets the demo dates a week apart. |
-| NFR-7 | Code review before merge | The `Require a pull request before merging` ruleset that was active from 20 Oct no longer exists: `main` currently has no branch protection at all. Five of the eight post-freeze PRs (#80-#84) were authored by the same account that merged them, so they have no independent review on record. | Stated plainly rather than claimed as compliance. Restoring the ruleset is a one-minute job in repository settings. |
 | SAD | Architecture diagram | The diagram was drawn before we picked a framework. We use Django with PostgreSQL (decided in issue #21). The README is the current reference. | The framework was chosen after the diagram. |
-| Test Plan | Test results columns | The PDF still shows Pending in its own columns. The real results live in `docs/testing/test-plan-results.md`, which records all 120 cases with a result and a named test or code path per case. | The PDF is a submitted artefact; the results file is what actually gets kept up to date. |
-| Test Plan | Two cases assume extra infrastructure | FR-2_ST02 (500 users in 2 seconds) is measured by the in-repo `load_test_search` command: 500 searches over 50 workers, p95 1.04 s, max 1.52 s. FR-15_ST02 (mobile view) was rendered at 390x844 in headless Chrome with a signed-in session. | The commands and screenshots are repeatable evidence, not a device-lab claim. |
 
 ## Functional requirements
 
