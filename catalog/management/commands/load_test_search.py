@@ -30,8 +30,10 @@ class Command(BaseCommand):
         url = reverse("catalog")
         query = options["query"]
 
-        def one(_):
-            client = Client()
+        def one(index):
+            # Each simulated user has its own address, as 500 real buyers would,
+            # so the per-address search limit (SEC-30) applies per user, not to the whole test.
+            client = Client(REMOTE_ADDR=f"10.{index // 65536 % 256}.{index // 256 % 256}.{index % 256}")
             started = time.perf_counter()
             response = client.get(url, {"q": query})
             return time.perf_counter() - started, response.status_code

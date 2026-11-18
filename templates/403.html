@@ -1,0 +1,8 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="empty">
+  <h1>Access denied</h1>
+  <p>You do not have permission to do that. If you think this is a mistake, sign in again or contact customer support.</p>
+  <a class="button" href="{% url 'catalog' %}">Back to the collection</a>
+</section>
+{% endblock %}

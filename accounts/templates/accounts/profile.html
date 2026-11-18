@@ -17,4 +17,22 @@
   </form>
   <p class="muted">Need help with an order or your account? <a href="{% url 'support' %}">Contact customer support</a>.</p>
 </div>
+<div class="panel editor">
+  <h2>Your personal data</h2>
+  <p class="muted">Correct the details we hold about you. See the <a href="{% url 'privacy' %}">privacy notice</a> for what we keep and why.</p>
+  <form method="post" action="{% url 'profile_update' %}">
+    {% csrf_token %}
+    {{ data_form.as_p }}
+    <button class="button small">Save details</button>
+  </form>
+</div>
+<div class="panel editor">
+  <h2>Delete your account</h2>
+  <p class="muted">Your name, email and phone number are erased and you can no longer sign in. Orders and invoices are kept because tax and accounting law requires it.</p>
+  <form method="post" action="{% url 'profile_delete' %}">
+    {% csrf_token %}
+    {{ delete_form.as_p }}
+    <button class="button small">Delete my account</button>
+  </form>
+</div>
 {% endblock %}

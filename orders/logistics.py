@@ -63,13 +63,17 @@ class HttpCarrier:
 
     def _request(self, method, path, payload=None):
         url = f"{settings.SHIPPING_API_URL.rstrip('/')}{path}"
+        # SEC-36: the carrier API is only ever called over TLS.
+        if not url.lower().startswith("https://"):
+            logger.warning("Carrier API URL is not HTTPS; refusing to call it")
+            raise ShipmentError("The carrier is not configured for a secure connection.")
         data = json.dumps(payload).encode() if payload is not None else None
         headers = {"Accept": "application/json", "Content-Type": "application/json"}
         if getattr(settings, "SHIPPING_API_KEY", ""):
             headers["Authorization"] = f"Bearer {settings.SHIPPING_API_KEY}"
         request = urllib.request.Request(url, data=data, method=method, headers=headers)
         try:
-            with urllib.request.urlopen(request, timeout=TIMEOUT_SECONDS) as response:
+            with urllib.request.urlopen(request, timeout=TIMEOUT_SECONDS) as response:  # nosec B310
                 return json.loads(response.read().decode() or "{}")
         except urllib.error.HTTPError as error:
             # Status only: never log the buyer's address or the API key.

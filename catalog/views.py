@@ -15,7 +15,10 @@ from django.db import transaction
 from django.shortcuts import redirect
 from django.views.decorators.http import require_http_methods
 
+from security import events, ratelimit
 
+
+@ratelimit.limit_by_ip("search", methods=("GET",), when=lambda request: bool(request.GET))
 def catalog(request):
     books = Book.objects.filter(status=Book.Status.APPROVED, seller__is_active=True).select_related("seller").prefetch_related("images").order_by("title", "pk")
     genres = list(books.exclude(category="").values_list("category", flat=True).distinct().order_by("category"))
@@ -69,7 +72,12 @@ def _own_listing_or_404(request, pk):
     """A seller's own, not yet removed listing. Anyone else's listing looks like it does not exist."""
     if not request.user.has_perm("catalog.add_book"):
         raise PermissionDenied
-    return get_object_or_404(Book.objects.exclude(status=Book.Status.REMOVED), pk=pk, seller=request.user)
+    book = Book.objects.exclude(status=Book.Status.REMOVED).filter(pk=pk).first()
+    if book is None or book.seller_id != request.user.pk:
+        if book is not None:
+            events.record(events.Kind.AUTHZ_DENIED, request, detail=f"listing {pk} belongs to another seller")
+        raise Http404("Listing not found")
+    return book
 
 
 @login_required
@@ -109,11 +117,15 @@ def book_detail(request, pk):
     # Listings that are not approved (status arrives with the seller listing feature) stay hidden.
     if book.status != Book.Status.APPROVED or (book.seller and not book.seller.is_active):
         raise Http404("Book not found")
-    reviews = list(book.reviews.select_related("user").order_by("-created_at", "-pk"))
-    summary = book.reviews.aggregate(average=Avg("rating"), count=Count("pk"))
+    # Only published reviews are shown or counted; held ones wait for an admin (SEC-29).
+    published = book.reviews.filter(status=Review.Status.PUBLISHED)
+    reviews = list(published.select_related("user").order_by("-created_at", "-pk"))
+    summary = published.aggregate(average=Avg("rating"), count=Count("pk"))
     # The seller's rating is the average over reviews of all their approved listings.
     seller_summary = (
-        Review.objects.filter(book__seller=book.seller, book__status=Book.Status.APPROVED).aggregate(
+        Review.objects.filter(
+            book__seller=book.seller, book__status=Book.Status.APPROVED, status=Review.Status.PUBLISHED
+        ).aggregate(
             average=Avg("rating"), count=Count("pk")
         )
         if book.seller
@@ -124,7 +136,7 @@ def book_detail(request, pk):
     in_wishlist = False
     if request.user.is_authenticated:
         in_wishlist = request.user.wishlist_items.filter(book=book).exists()
-        user_review = next((review for review in reviews if review.user_id == request.user.pk), None)
+        user_review = book.reviews.filter(user=request.user).first()
         can_review = user_review is not None or has_delivered_purchase(request.user, book)
     return render(
         request,

@@ -48,6 +48,22 @@ def find(code, for_update=False):
     return _check(coupon)
 
 
+def check_buyer(coupon, user):
+    """SEC-24: a coupon with a per-buyer limit cannot be used more often than that by one buyer."""
+    if coupon is None or coupon.max_uses_per_buyer is None or user is None:
+        return coupon
+    from .models import Order
+
+    used = (
+        Order.objects.filter(user=user, coupon_code=coupon.code)
+        .exclude(status=Order.Status.PAYMENT_FAILED)
+        .count()
+    )
+    if used >= coupon.max_uses_per_buyer:
+        raise CouponError("You have already used this coupon the maximum number of times.")
+    return coupon
+
+
 def minimum_problem(coupon, subtotal):
     """The message to show when ``subtotal`` misses the coupon minimum, or "".
 

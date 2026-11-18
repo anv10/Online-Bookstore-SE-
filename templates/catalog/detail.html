@@ -65,7 +65,7 @@
   <div class="section-head">
     <h2>Reviews</h2>
     {% if user_review %}
-      <a class="button small" href="{% url 'review_submit' book.pk %}?edit=1">Edit your review</a>
+      <a class="button small" href="{% url 'review_submit' book.pk %}?edit=1">Edit your review</a>{% if user_review.status == 'held' %} <span class="muted">Your review is waiting for a moderator.</span>{% elif user_review.status == 'rejected' %} <span class="muted">Your review was not published.</span>{% endif %}
     {% elif can_review %}
       <a class="button small" href="{% url 'review_submit' book.pk %}">Write a review</a>
     {% endif %}

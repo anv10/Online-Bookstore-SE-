@@ -1,0 +1,12 @@
+== migrate accounts back to 0005 (plain phone column) and insert a legacy user
+before: +919876543210
+== migrate forward to 0006 (encrypt)
+after (raw DB): gAAAAABq_VJ1f4--IAGG4p_03Hk1kxMsm_mAu_KE...  digest=a567d2ba91aafbf7...
+
+ORM lookup by phone -> legacy@example.com +919876543210
+== reverse to 0005 restores plain text, then forward again
+reversed: +919876543210
+
+== DB trigger blocks tampering with the security log
+ERROR:  security events are append-only
+ERROR:  security events are kept for the 90-day retention period

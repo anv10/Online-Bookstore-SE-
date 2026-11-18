@@ -1,0 +1,167 @@
+Found 98 test(s).
+Creating test database for alias 'default' ('test_bookstore')...
+Operations to perform:
+  Synchronize unmigrated apps: messages, staticfiles
+  Apply all migrations: accounts, admin, auth, cart, catalog, contenttypes, orders, reviews, security, sessions, wishlist
+Synchronizing apps without migrations:
+  Creating tables...
+    Running deferred SQL...
+Running migrations:
+  Applying contenttypes.0001_initial... OK
+  Applying contenttypes.0002_remove_content_type_name... OK
+  Applying auth.0001_initial... OK
+  Applying auth.0002_alter_permission_name_max_length... OK
+  Applying auth.0003_alter_user_email_max_length... OK
+  Applying auth.0004_alter_user_username_opts... OK
+  Applying auth.0005_alter_user_last_login_null... OK
+  Applying auth.0006_require_contenttypes_0002... OK
+  Applying auth.0007_alter_validators_add_error_messages... OK
+  Applying auth.0008_alter_user_username_max_length... OK
+  Applying auth.0009_alter_user_last_name_max_length... OK
+  Applying auth.0010_alter_group_name_max_length... OK
+  Applying auth.0011_update_proxy_permissions... OK
+  Applying auth.0012_alter_user_first_name_max_length... OK
+  Applying accounts.0001_initial... OK
+  Applying accounts.0002_email_optional... OK
+  Applying accounts.0003_user_removed_at_user_suspended_at_accountaction... OK
+  Applying accounts.0004_login_throttle... OK
+  Applying accounts.0005_passwordresetotp... OK
+  Applying accounts.0006_encrypt_phone... OK
+  Applying admin.0001_initial... OK
+  Applying admin.0002_logentry_remove_auto_add... OK
+  Applying admin.0003_logentry_add_action_flag_choices... OK
+  Applying catalog.0001_initial... OK
+  Applying cart.0001_initial... OK
+  Applying catalog.0002_book_condition_book_seller_book_status_and_more... OK
+  Applying catalog.0003_adminchallenge_moderationevent... OK
+  Applying catalog.0004_listingflag... OK
+  Applying orders.0001_initial... OK
+  Applying orders.0002_encrypt_shipping_address... OK
+  Applying orders.0003_encrypt_existing_addresses... OK
+  Applying orders.0004_alter_order_status... OK
+  Applying orders.0005_order_confirmation... OK
+  Applying orders.0006_pendingpayment... OK
+  Applying orders.0007_order_out_for_delivery... OK
+  Applying orders.0008_coupons... OK
+  Applying orders.0009_coupon_minimum_order_value... OK
+  Applying orders.0010_refunds... OK
+  Applying orders.0011_shipment_tracking... OK
+  Applying orders.0012_sms_confirmation... OK
+  Applying orders.0013_alter_order_status_alter_orderstatuslog_status... OK
+  Applying orders.0014_coupon_per_buyer_limit... OK
+  Applying orders.0015_order_payment_reference... OK
+  Applying reviews.0001_initial... OK
+  Applying reviews.0002_alter_review_options_review_updated_at... OK
+  Applying reviews.0003_review_moderation_status... OK
+  Applying security.0001_security_event_and_rate_limits... OK
+  Applying security.0002_append_only_trigger... OK
+  Applying sessions.0001_initial... OK
+  Applying wishlist.0001_initial... OK
+System check identified no issues (0 silenced).
+test_strong_password_is_accepted (security.tests.test_sec_requirements.SEC01PasswordPolicyTests.test_strong_password_is_accepted) ... ok
+test_weak_passwords_are_rejected_at_registration (security.tests.test_sec_requirements.SEC01PasswordPolicyTests.test_weak_passwords_are_rejected_at_registration) ... ok
+test_weak_passwords_are_rejected_at_reset (security.tests.test_sec_requirements.SEC01PasswordPolicyTests.test_weak_passwords_are_rejected_at_reset) ... ok
+test_argon2_is_the_hasher_and_hashes_are_salted (security.tests.test_sec_requirements.SEC02PasswordStorageTests.test_argon2_is_the_hasher_and_hashes_are_salted) ... ok
+test_plain_password_is_nowhere_in_the_user_table (security.tests.test_sec_requirements.SEC02PasswordStorageTests.test_plain_password_is_nowhere_in_the_user_table) ... ok
+test_lock_expires_after_fifteen_minutes (security.tests.test_sec_requirements.SEC03LockoutTests.test_lock_expires_after_fifteen_minutes) ... ok
+test_three_failures_lock_and_warn (security.tests.test_sec_requirements.SEC03LockoutTests.test_three_failures_lock_and_warn) ... ok
+test_lockout_also_applies_to_unknown_identifiers (security.tests.test_sec_requirements.SEC04GenericMessagesTests.test_lockout_also_applies_to_unknown_identifiers) ... ok
+test_login_error_is_identical_for_unknown_and_known_accounts (security.tests.test_sec_requirements.SEC04GenericMessagesTests.test_login_error_is_identical_for_unknown_and_known_accounts) ... ok
+test_reset_reply_is_identical_for_unknown_and_known_accounts (security.tests.test_sec_requirements.SEC04GenericMessagesTests.test_reset_reply_is_identical_for_unknown_and_known_accounts) ... ok
+test_link_expires_after_ten_minutes_and_is_single_use (security.tests.test_sec_requirements.SEC05ResetCodeLifetimeTests.test_link_expires_after_ten_minutes_and_is_single_use) ... ok
+test_otp_expires_after_ten_minutes (security.tests.test_sec_requirements.SEC05ResetCodeLifetimeTests.test_otp_expires_after_ten_minutes) ... ok
+test_otp_is_single_use (security.tests.test_sec_requirements.SEC05ResetCodeLifetimeTests.test_otp_is_single_use) ... ok
+test_sixth_request_in_an_hour_sends_nothing (security.tests.test_sec_requirements.SEC06ResetRequestLimitTests.test_sixth_request_in_an_hour_sends_nothing) ... ok
+test_cookie_is_secure_when_https_is_enforced (security.tests.test_sec_requirements.SEC07SessionTokenTests.test_cookie_is_secure_when_https_is_enforced) ... ok
+test_login_issues_a_new_random_httponly_session (security.tests.test_sec_requirements.SEC07SessionTokenTests.test_login_issues_a_new_random_httponly_session) ... ok
+test_idle_session_is_rejected (security.tests.test_sec_requirements.SEC08SessionExpiryTests.test_idle_session_is_rejected) ... ok
+test_idle_timeout_is_thirty_minutes_and_renewed_by_activity (security.tests.test_sec_requirements.SEC08SessionExpiryTests.test_idle_timeout_is_thirty_minutes_and_renewed_by_activity) ... ok
+test_logout_deletes_the_server_side_session (security.tests.test_sec_requirements.SEC08SessionExpiryTests.test_logout_deletes_the_server_side_session) ... ok
+test_link_reset_ends_other_sessions (security.tests.test_sec_requirements.SEC09SessionsEndOnPasswordChangeTests.test_link_reset_ends_other_sessions) ... ok
+test_otp_reset_ends_other_sessions (security.tests.test_sec_requirements.SEC09SessionsEndOnPasswordChangeTests.test_otp_reset_ends_other_sessions) ... ok
+test_anonymous_users_are_sent_to_login (security.tests.test_sec_requirements.SEC10RoleBasedAccessTests.test_anonymous_users_are_sent_to_login) ... ok
+test_buyer_cannot_use_seller_or_admin_features_by_typing_the_url (security.tests.test_sec_requirements.SEC10RoleBasedAccessTests.test_buyer_cannot_use_seller_or_admin_features_by_typing_the_url) ... ok
+test_other_buyers_cart_and_wishlist_cannot_be_changed (security.tests.test_sec_requirements.SEC11BuyerDataIsolationTests.test_other_buyers_cart_and_wishlist_cannot_be_changed) ... ok
+test_other_buyers_orders_and_invoices_are_not_found (security.tests.test_sec_requirements.SEC11BuyerDataIsolationTests.test_other_buyers_orders_and_invoices_are_not_found) ... ok
+test_another_sellers_listing_cannot_be_edited_or_removed (security.tests.test_sec_requirements.SEC12SellerOwnershipTests.test_another_sellers_listing_cannot_be_edited_or_removed) ... ok
+test_orders_without_my_books_cannot_be_viewed_or_shipped (security.tests.test_sec_requirements.SEC12SellerOwnershipTests.test_orders_without_my_books_cannot_be_viewed_or_shipped) ... ok
+test_account_action_is_audited (security.tests.test_sec_requirements.SEC13AdminActionsTests.test_account_action_is_audited) ... ok
+test_listing_decision_is_audited (security.tests.test_sec_requirements.SEC13AdminActionsTests.test_listing_decision_is_audited) ... ok
+test_non_admins_cannot_moderate (security.tests.test_sec_requirements.SEC13AdminActionsTests.test_non_admins_cannot_moderate) ... ok
+test_all_admin_areas_require_the_second_factor (security.tests.test_sec_requirements.SEC14AdminSecondFactorTests.test_all_admin_areas_require_the_second_factor) ... ok
+test_emailed_code_unlocks_the_requested_admin_page (security.tests.test_sec_requirements.SEC14AdminSecondFactorTests.test_emailed_code_unlocks_the_requested_admin_page) ... ok
+test_next_cannot_redirect_off_site (security.tests.test_sec_requirements.SEC14AdminSecondFactorTests.test_next_cannot_redirect_off_site) ... ok
+test_buyer_with_a_delivered_order_can_review (security.tests.test_sec_requirements.SEC15VerifiedPurchaseReviewTests.test_buyer_with_a_delivered_order_can_review) ... ok
+test_buyer_without_a_delivered_order_is_refused (security.tests.test_sec_requirements.SEC15VerifiedPurchaseReviewTests.test_buyer_without_a_delivered_order_is_refused) ... ok
+test_force_https_switch_turns_the_settings_on (security.tests.test_sec_requirements.SEC16TransportSecurityTests.test_force_https_switch_turns_the_settings_on) ... ok
+test_plain_http_is_redirected_and_https_gets_hsts (security.tests.test_sec_requirements.SEC16TransportSecurityTests.test_plain_http_is_redirected_and_https_gets_hsts) ... ok
+test_duplicate_phone_is_still_rejected (security.tests.test_sec_requirements.SEC17EncryptionAtRestTests.test_duplicate_phone_is_still_rejected) ... ok
+test_phone_number_is_encrypted_but_still_works_for_login (security.tests.test_sec_requirements.SEC17EncryptionAtRestTests.test_phone_number_is_encrypted_but_still_works_for_login) ... ok
+test_shipping_address_is_encrypted (security.tests.test_sec_requirements.SEC17EncryptionAtRestTests.test_shipping_address_is_encrypted) ... ok
+test_reset_token_is_moved_out_of_the_address_bar (security.tests.test_sec_requirements.SEC18NoSecretsInLogsOrUrlsTests.test_reset_token_is_moved_out_of_the_address_bar) ... ok
+test_secrets_never_appear_in_logs_events_or_pages (security.tests.test_sec_requirements.SEC18NoSecretsInLogsOrUrlsTests.test_secrets_never_appear_in_logs_events_or_pages) ... ok
+test_sensitive_views_hide_post_data_from_error_reports (security.tests.test_sec_requirements.SEC18NoSecretsInLogsOrUrlsTests.test_sensitive_views_hide_post_data_from_error_reports) ... ok
+test_debug_is_off (security.tests.test_sec_requirements.SEC19GenericErrorPagesTests.test_debug_is_off) ... ok
+test_missing_page_is_generic (security.tests.test_sec_requirements.SEC19GenericErrorPagesTests.test_missing_page_is_generic) ... ok
+test_unhandled_error_shows_a_generic_page (security.tests.test_sec_requirements.SEC19GenericErrorPagesTests.test_unhandled_error_shows_a_generic_page) ... ok
+test_backup_is_encrypted_private_and_restorable (security.tests.test_sec_requirements.SEC20EncryptedBackupTests.test_backup_is_encrypted_private_and_restorable) ... ok
+test_backup_refuses_to_run_without_a_key (security.tests.test_sec_requirements.SEC20EncryptedBackupTests.test_backup_refuses_to_run_without_a_key) ... ok
+test_no_table_or_session_contains_card_data_after_checkout (security.tests.test_sec_requirements.SEC21NoCardStorageTests.test_no_table_or_session_contains_card_data_after_checkout) ... ok
+test_tampered_amounts_from_the_browser_are_ignored (security.tests.test_sec_requirements.SEC22ServerSideTotalsTests.test_tampered_amounts_from_the_browser_are_ignored) ... ok
+test_declined_card_creates_no_paid_order (security.tests.test_sec_requirements.SEC23VerifiedPaymentTests.test_declined_card_creates_no_paid_order) ... ok
+test_gateway_timeout_creates_no_order (security.tests.test_sec_requirements.SEC23VerifiedPaymentTests.test_gateway_timeout_creates_no_order) ... Payment gateway gave no result (TimeoutError)
+ok
+test_hosted_return_url_is_not_trusted_without_asking_the_gateway (security.tests.test_sec_requirements.SEC23VerifiedPaymentTests.test_hosted_return_url_is_not_trusted_without_asking_the_gateway) ... ok
+test_success_without_a_transaction_reference_creates_no_order (security.tests.test_sec_requirements.SEC23VerifiedPaymentTests.test_success_without_a_transaction_reference_creates_no_order) ... Payment gateway reported success without a transaction reference
+ok
+test_discount_comes_from_the_server_side_coupon (security.tests.test_sec_requirements.SEC24CouponAbuseTests.test_discount_comes_from_the_server_side_coupon) ... ok
+test_guessing_codes_is_rate_limited (security.tests.test_sec_requirements.SEC24CouponAbuseTests.test_guessing_codes_is_rate_limited) ... ok
+test_per_buyer_limit_is_enforced (security.tests.test_sec_requirements.SEC24CouponAbuseTests.test_per_buyer_limit_is_enforced) ... ok
+test_per_buyer_limit_is_rechecked_when_the_order_is_placed (security.tests.test_sec_requirements.SEC24CouponAbuseTests.test_per_buyer_limit_is_rechecked_when_the_order_is_placed) ... ok
+test_listing_and_cart_reject_out_of_range_values (security.tests.test_sec_requirements.SEC25InputValidationTests.test_listing_and_cart_reject_out_of_range_values) ... ok
+test_non_numeric_url_ids_never_reach_the_view (security.tests.test_sec_requirements.SEC25InputValidationTests.test_non_numeric_url_ids_never_reach_the_view) ... ok
+test_registration_rejects_bad_email_and_phone (security.tests.test_sec_requirements.SEC25InputValidationTests.test_registration_rejects_bad_email_and_phone) ... ok
+test_search_and_filters_reject_bad_types_and_lengths (security.tests.test_sec_requirements.SEC25InputValidationTests.test_search_and_filters_reject_bad_types_and_lengths) ... ok
+test_application_code_uses_no_raw_sql (security.tests.test_sec_requirements.SEC26SqlInjectionTests.test_application_code_uses_no_raw_sql) ... ok
+test_injection_in_login_is_harmless (security.tests.test_sec_requirements.SEC26SqlInjectionTests.test_injection_in_login_is_harmless) ... ok
+test_injection_strings_in_search_are_harmless (security.tests.test_sec_requirements.SEC26SqlInjectionTests.test_injection_strings_in_search_are_harmless) ... ok
+test_listing_description_and_title_are_escaped (security.tests.test_sec_requirements.SEC27OutputEncodingTests.test_listing_description_and_title_are_escaped) ... ok
+test_review_text_is_escaped (security.tests.test_sec_requirements.SEC27OutputEncodingTests.test_review_text_is_escaped) ... ok
+test_templates_never_mark_user_content_safe (security.tests.test_sec_requirements.SEC27OutputEncodingTests.test_templates_never_mark_user_content_safe) ... ok
+test_posts_without_a_token_are_refused (security.tests.test_sec_requirements.SEC28CsrfTests.test_posts_without_a_token_are_refused) ... ok
+test_the_only_csrf_exempt_endpoint_requires_a_signature (security.tests.test_sec_requirements.SEC28CsrfTests.test_the_only_csrf_exempt_endpoint_requires_a_signature) ... ok
+test_clean_review_is_published_and_admin_can_approve_a_held_one (security.tests.test_sec_requirements.SEC29ReviewModerationTests.test_clean_review_is_published_and_admin_can_approve_a_held_one) ... ok
+test_flagged_reviews_are_held_and_hidden (security.tests.test_sec_requirements.SEC29ReviewModerationTests.test_flagged_reviews_are_held_and_hidden) ... ok
+test_each_entry_point_returns_429_after_its_limit (security.tests.test_sec_requirements.SEC30RateLimitTests.test_each_entry_point_returns_429_after_its_limit) ... ok
+test_limits_are_shared_in_the_database_across_servers (security.tests.test_sec_requirements.SEC30RateLimitTests.test_limits_are_shared_in_the_database_across_servers) ... ok
+test_each_event_type_is_recorded (security.tests.test_sec_requirements.SEC31SecurityEventLogTests.test_each_event_type_is_recorded) ... ok
+test_events_also_go_to_the_security_logger (security.tests.test_sec_requirements.SEC31SecurityEventLogTests.test_events_also_go_to_the_security_logger) ... ok
+test_admin_is_read_only_and_needs_view_permission (security.tests.test_sec_requirements.SEC32ProtectedLogTests.test_admin_is_read_only_and_needs_view_permission) ... ok
+test_application_cannot_edit_or_delete_events (security.tests.test_sec_requirements.SEC32ProtectedLogTests.test_application_cannot_edit_or_delete_events) ... ok
+test_database_rejects_raw_updates_and_early_deletes (security.tests.test_sec_requirements.SEC32ProtectedLogTests.test_database_rejects_raw_updates_and_early_deletes) ... ok
+test_retention_purge_keeps_ninety_days (security.tests.test_sec_requirements.SEC32ProtectedLogTests.test_retention_purge_keeps_ninety_days) ... ok
+test_orders_hold_no_extra_personal_data (security.tests.test_sec_requirements.SEC33DataMinimisationTests.test_orders_hold_no_extra_personal_data) ... ok
+test_registration_asks_only_for_what_is_needed (security.tests.test_sec_requirements.SEC33DataMinimisationTests.test_registration_asks_only_for_what_is_needed) ... ok
+test_user_model_holds_only_account_data (security.tests.test_sec_requirements.SEC33DataMinimisationTests.test_user_model_holds_only_account_data) ... ok
+test_notice_explains_what_and_why (security.tests.test_sec_requirements.SEC34PrivacyNoticeTests.test_notice_explains_what_and_why) ... ok
+test_registration_page_links_to_the_notice (security.tests.test_sec_requirements.SEC34PrivacyNoticeTests.test_registration_page_links_to_the_notice) ... ok
+test_deletion_erases_personal_data_but_keeps_orders (security.tests.test_sec_requirements.SEC35DataCorrectionAndDeletionTests.test_deletion_erases_personal_data_but_keeps_orders) ... ok
+test_deletion_needs_the_password (security.tests.test_sec_requirements.SEC35DataCorrectionAndDeletionTests.test_deletion_needs_the_password) ... ok
+test_user_can_correct_their_details (security.tests.test_sec_requirements.SEC35DataCorrectionAndDeletionTests.test_user_can_correct_their_details) ... ok
+test_carrier_api_must_be_https (security.tests.test_sec_requirements.SEC36SecureIntegrationsTests.test_carrier_api_must_be_https) ... Carrier API URL is not HTTPS; refusing to call it
+ok
+test_email_uses_tls_by_default (security.tests.test_sec_requirements.SEC36SecureIntegrationsTests.test_email_uses_tls_by_default) ... ok
+test_payment_api_is_https_and_authenticated (security.tests.test_sec_requirements.SEC36SecureIntegrationsTests.test_payment_api_is_https_and_authenticated) ... ok
+test_no_secret_values_are_committed (security.tests.test_sec_requirements.SEC37SecretsOutOfSourceTests.test_no_secret_values_are_committed) ... ok
+test_settings_read_secrets_from_the_environment (security.tests.test_sec_requirements.SEC37SecretsOutOfSourceTests.test_settings_read_secrets_from_the_environment) ... ok
+test_ci_runs_pip_audit (security.tests.test_sec_requirements.SEC38DependencyHygieneTests.test_ci_runs_pip_audit) ... ok
+test_pillow_is_on_the_patched_major_version (security.tests.test_sec_requirements.SEC38DependencyHygieneTests.test_pillow_is_on_the_patched_major_version) ... ok
+test_ci_runs_tests_and_static_analysis (security.tests.test_sec_requirements.SEC39SecureDevelopmentTests.test_ci_runs_tests_and_static_analysis) ... ok
+test_every_requirement_has_a_test_class (security.tests.test_sec_requirements.SEC39SecureDevelopmentTests.test_every_requirement_has_a_test_class) ... ok
+test_pull_requests_carry_a_security_checklist (security.tests.test_sec_requirements.SEC39SecureDevelopmentTests.test_pull_requests_carry_a_security_checklist) ... ok
+
+----------------------------------------------------------------------
+Ran 98 tests in 38.844s
+
+OK
+Destroying test database for alias 'default' ('test_bookstore')...

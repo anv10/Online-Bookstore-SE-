@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     "orders",
     "reviews",
     "wishlist",
+    "security",
 ]
 
 PASSWORD_HASHERS = [
@@ -63,8 +64,34 @@ LOGOUT_REDIRECT_URL = "login"
 LOGIN_MAX_FAILURES = int(os.environ.get("LOGIN_MAX_FAILURES", "3"))
 LOGIN_LOCKOUT_MINUTES = int(os.environ.get("LOGIN_LOCKOUT_MINUTES", "15"))
 
-# Password reset links stop working after one hour.
-PASSWORD_RESET_TIMEOUT = 3600
+# Password reset links and OTPs stop working after ten minutes (SEC-5, Security Requirements section 4).
+PASSWORD_RESET_TIMEOUT = 600
+
+# Sessions end after 30 minutes without a request (SEC-8). Every request renews
+# the expiry, and logging out deletes the session row on the server.
+SESSION_COOKIE_AGE = int(os.environ.get("SESSION_IDLE_TIMEOUT_SECONDS", "1800"))
+SESSION_SAVE_EVERY_REQUEST = True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = "Lax"
+CSRF_COOKIE_SAMESITE = "Lax"
+CSRF_FAILURE_VIEW = "security.views.csrf_failure"
+
+# Request limits per scope: (max requests, window in seconds) (SEC-6, SEC-24, SEC-30).
+RATE_LIMITS = {
+    "login": (20, 300),            # sign-in attempts per client address per 5 minutes
+    "register": (10, 3600),        # registrations per client address per hour
+    "password_reset": (10, 3600),  # reset requests per client address per hour
+    "password_reset_account": (5, 3600),  # reset messages per account per hour (SEC-6)
+    "password_reset_otp": (20, 3600),     # code entries per client address per hour
+    "search": (120, 60),           # catalogue searches per client address per minute
+    "coupon_failures": (10, 900),  # rejected coupon codes per buyer per 15 minutes (SEC-24)
+}
+
+# Security log retention (SEC-32). The PostgreSQL trigger in security/migrations/0002 uses the same 90 days.
+SECURITY_LOG_RETENTION_DAYS = 90
+# Encrypted database backups (SEC-20); there is deliberately no fallback key.
+BACKUP_ENCRYPTION_KEY = os.environ.get("BACKUP_ENCRYPTION_KEY", "")
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -72,6 +99,8 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "security.middleware.AdminSecondFactorMiddleware",
+    "security.middleware.SecurityEventMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -174,6 +203,23 @@ if FORCE_HTTPS:
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
+
+# Security events go to the database table and to the "bookstore.security" logger (SEC-31).
+# Set SECURITY_LOG_FILE to also append them to a file only the service account can read (SEC-32).
+SECURITY_LOG_FILE = os.environ.get("SECURITY_LOG_FILE", "")
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "security_file": {
+            "class": "logging.FileHandler",
+            "filename": SECURITY_LOG_FILE,
+            "formatter": "plain",
+        } if SECURITY_LOG_FILE else {"class": "logging.NullHandler"},
+    },
+    "formatters": {"plain": {"format": "%(asctime)s %(levelname)s %(name)s %(message)s"}},
+    "loggers": {"bookstore.security": {"handlers": ["security_file"], "level": "INFO", "propagate": False}},
+}
 
 # SMTP for admin verification. Development/tests may override with locmem, never console.
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"

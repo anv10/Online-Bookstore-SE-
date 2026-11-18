@@ -21,6 +21,9 @@ class Coupon(models.Model):
     active = models.BooleanField(default=True)
     expires_at = models.DateTimeField(null=True, blank=True)
     max_uses = models.PositiveIntegerField(null=True, blank=True, help_text="Leave empty for no limit.")
+    max_uses_per_buyer = models.PositiveIntegerField(
+        null=True, blank=True, help_text="Paid orders one buyer may place with this code. Leave empty for no limit (SEC-24)."
+    )
     times_used = models.PositiveIntegerField(default=0, editable=False)
     min_order_total = models.DecimalField(
         max_digits=10,
@@ -59,6 +62,8 @@ class Order(models.Model):
     total = models.DecimalField(max_digits=10, decimal_places=2)
     discount = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
     coupon_code = models.CharField(max_length=40, blank=True)
+    # The payment gateway's transaction reference: the only payment detail kept (SEC-21).
+    payment_reference = models.CharField(max_length=255, blank=True)
     # The carrier's own reference for this shipment (FR-9). Empty until it ships.
     tracking_reference = models.CharField(max_length=64, blank=True, db_index=True)
     shipping_address = EncryptedTextField()

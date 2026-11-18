@@ -6,6 +6,9 @@ from django.views.decorators.http import require_http_methods
 
 from catalog.models import Book
 
+from security import events
+
+from . import content_filter
 from .forms import ReviewForm
 from .models import Review
 from .services import has_delivered_purchase
@@ -42,10 +45,17 @@ def submit_review(request, pk):
                 review = form.save(commit=False)
                 review.book = book
                 review.user = request.user
+                flagged = content_filter.reasons(review.comment)
+                review.status = Review.Status.HELD if flagged else Review.Status.PUBLISHED
+                review.held_reason = ", ".join(flagged)
                 review.save()
         except IntegrityError:
             # The unique constraint is the final guard if the same buyer submits twice concurrently.
             messages.error(request, "You have already reviewed this item.")
+            return redirect("book_detail", pk=book.pk)
+        if review.status == Review.Status.HELD:
+            events.record(events.Kind.REVIEW_HELD, request, detail=f"review {review.pk}: {review.held_reason}")
+            messages.info(request, "Thanks. Your review will appear once a moderator has checked it.")
             return redirect("book_detail", pk=book.pk)
         messages.success(request, "Your review was updated." if is_edit else "Thanks for your review.")
         return redirect("book_detail", pk=book.pk)

@@ -2,7 +2,7 @@
 
 Where the build differs from the documents we submitted, and why. Status is current as of the end of Sprint 2. Every issue and pull request referenced here is closed and merged.
 
-The executed Test Plan, case by case with evidence, is in [`docs/testing/test-plan-results.md`](testing/test-plan-results.md). All 120 cases now meet their stated Expected Result. The two cases that need more than the unit suite were run with dedicated tools: FR-2_ST02 with `manage.py load_test_search` and FR-15_ST02 in headless Chrome at a 390x844 viewport.
+The executed Test Plan, case by case with evidence, is in [`docs/testing/test-plan-results.md`](testing/test-plan-results.md). The 39 security requirements (SEC-1 to SEC-39) are validated separately in [`docs/testing/security-validation.md`](testing/security-validation.md) and `Documents/SecurityValidationReport_Online_Bookstore.docx`. All 120 cases now meet their stated Expected Result. The two cases that need more than the unit suite were run with dedicated tools: FR-2_ST02 with `manage.py load_test_search` and FR-15_ST02 in headless Chrome at a 390x844 viewport.
 
 Sources: the SRS, Test Plan and architecture diagram in `Documents/`, the issues, and the notes in `docs/sprint2/`.
 
@@ -36,20 +36,20 @@ Sources: the SRS, Test Plan and architecture diagram in `Documents/`, the issues
 | FR-12 (FR-12_ST01) | A buyer flags a listing and an admin rejects it | Built: a signed-in buyer submits a reason, the listing appears under "Reported by buyers", and a reject/remove decision hides it from buyers and marks the report upheld. | Added to close the last missing moderation path. |
 | FR-12 | Admins suspend or remove user accounts | "Remove" keeps the row and only blocks the account, so orders and reviews still point at a user. There is no restore. | Deleting the row would break order and review links. |
 | FR-13 | Invoice after payment | The invoice is an HTML page that can be downloaded as an HTML file, not a PDF. It is itemised per seller and shows the net amount after partial refunds. | No PDF library was added. |
-| FR-14 (FR-14_UT02) | Reset a password by OTP | Both paths exist: the emailed link (one hour, single use) and a six digit OTP emailed alongside it. The OTP expires after ten minutes, allows five attempts, is single use, and reports an expired code separately from a wrong one. | The Test Plan's OTP cases needed an entry screen; the link remains the safer default. |
+| FR-14 (FR-14_UT02) | Reset a password by OTP | Both paths exist: the emailed link (ten minutes, single use) and a six digit OTP emailed alongside it. The OTP expires after ten minutes, allows five attempts, is single use, and reports an expired code separately from a wrong one. | The Test Plan's OTP cases needed an entry screen; the link remains the safer default. |
 
 ## Non-functional requirements
 
 | Ref | What the documents say | What we did | Why |
 | --- | --- | --- | --- |
-| NFR-6 | Sensitive data encrypted in transit and at rest | Passwords use Argon2. Only the shipping address is encrypted in the database (email and phone are not). HTTPS settings are switched on with `DJANGO_FORCE_HTTPS=1`, but TLS itself is set up on the web server, and the site is not deployed yet. | Scope of issue #23. There is no server to configure. |
+| NFR-6 | Sensitive data encrypted in transit and at rest | Passwords use Argon2. Shipping addresses and phone numbers are encrypted in the database; email addresses are not, because login looks them up. HTTPS settings are switched on with `DJANGO_FORCE_HTTPS=1`, but TLS itself is set up on the web server, and the site is not deployed yet. | Scope of issue #23. There is no server to configure. |
 | NFR-11 | Payment and shipping use standard third-party APIs | Payment: Stripe, done. Shipping: a carrier seam with a sandbox default and an HTTP client for a documented carrier API, plus inbound status webhooks. No live carrier account was connected. | Issue #24 was closed as won't-do for a live account; the integration seam was built instead. |
 | NFR-12 | Support by chat or email, answered within 24 hours | Email only, shown in the footer. The 24 hours is a stated target, nobody measures it. | NFR-12 allows chat or email. |
 | NFR-2 | 99.5% uptime, monitored | Not built. There is no health-check endpoint, no external monitor and no uptime report. Issue #28 was closed with its acceptance criteria still unticked. | The site is not deployed, so there is nothing to watch. |
 | NFR-1, NFR-3 | 500 users under 2 seconds, scale out | NFR-1 is measured locally by `manage.py load_test_search`: 500 searches over 50 workers returned p95 1.04 s against SQLite. Scale-out is still not deployed: sessions are in the database, but uploaded book images are on local disk. Issue #25 was closed with its acceptance criteria still unticked. | The latency target now has repeatable evidence; there is still no multi-server environment. |
 | NFR-4 | A first-time user buys within 5 minutes | Not tested with real users. Issue #29 was closed with its acceptance criteria still unticked. | Needs people outside the team. |
 | NFR-5 | Works in Chrome, Firefox, Safari, Edge and on mobile | The Test Plan's mobile case was checked in Chrome at 390x844, where the wishlist shows the same item as at 1366x900. Safari, Firefox and Edge were not run. Issue #26 was closed. | No device lab and no cross-browser run. |
-| NFR-10 | Privacy policy and data protection | Not built. There is no privacy policy page and no self-service account deletion. Issue #27 was closed. | Out of Sprint 1 and Sprint 2 scope; the admin moderation screen can remove an account on request. |
+| NFR-10 | Privacy policy and data protection | Built during security validation: a privacy notice linked from registration and every page, and self-service correction and deletion of personal data on My account (orders and invoices are kept). | Required by SEC-34 and SEC-35; see `docs/testing/security-validation.md`. |
 
 ## Load-bearing gaps
 

@@ -17,9 +17,11 @@ class EmailOrPhoneBackend(ModelBackend):
             return None
         User = get_user_model()
         identifier = username.strip()
-        user = (
-            User.objects.filter(email__iexact=identifier).first()
-            or User.objects.filter(phone=identifier).first()
+        from .models import phone_digest
+
+        digest = phone_digest(identifier)
+        user = User.objects.filter(email__iexact=identifier).first() or (
+            User.objects.filter(phone_digest=digest).first() if digest else None
         )
         if user is None:
             # Run the hasher anyway so timing does not reveal whether the account exists.

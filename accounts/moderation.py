@@ -10,7 +10,9 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 
-from .models import AccountAction, User
+from security import events, second_factor
+
+from .models import AccountAction, User, phone_digest
 
 
 class AccountActionForm(forms.Form):
@@ -35,12 +37,17 @@ def _check_admin(request):
 @require_http_methods(["GET"])
 def user_list(request):
     _check_admin(request)
+    if not second_factor.is_verified(request):
+        return second_factor.redirect_to_verify(request)
     users = User.objects.all().order_by("-date_joined", "-pk")
     query = request.GET.get("q", "").strip()
     if query:
-        users = users.filter(
-            Q(email__icontains=query) | Q(phone__icontains=query) | Q(full_name__icontains=query)
-        )
+        # Phone numbers are encrypted at rest (SEC-17), so they match exactly, not by substring.
+        match = Q(email__icontains=query) | Q(full_name__icontains=query)
+        digest = phone_digest(query)
+        if digest:
+            match |= Q(phone_digest=digest)
+        users = users.filter(match)
     status = request.GET.get("status", "active")
     if status == "suspended":
         users = users.filter(suspended_at__isnull=False, removed_at__isnull=True)
@@ -67,6 +74,8 @@ def user_list(request):
 @require_http_methods(["GET", "POST"])
 def user_detail(request, pk):
     _check_admin(request)
+    if not second_factor.is_verified(request):
+        return second_factor.redirect_to_verify(request)
     target = get_object_or_404(User, pk=pk)
     form = AccountActionForm(request.POST if request.method == "POST" else None)
 
@@ -100,6 +109,7 @@ def user_detail(request, pk):
                     action=action,
                     reason=form.cleaned_data["reason"],
                 )
+                events.record(events.Kind.ADMIN_ACTION, request, detail=f"account {target.pk} {verb}")
                 messages.success(request, f"Account {target} was {verb}.")
                 return redirect("user_admin_detail", pk=target.pk)
 

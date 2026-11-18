@@ -11,9 +11,11 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.debug import sensitive_post_parameters
 from django.views.decorators.http import require_GET, require_POST
 
 from cart.models import Cart
+from security import events, ratelimit
 
 from . import checkout as checkout_service
 from . import coupons
@@ -40,6 +42,7 @@ def _last_address(user):
 
 
 @login_required
+@sensitive_post_parameters("card_number", "card_expiry", "card_cvc")
 def checkout(request):
     coupon, coupon_problem = coupons.remembered(request.session)
     if coupon_problem:
@@ -75,6 +78,10 @@ def checkout(request):
             messages.error(request, str(error))
             return redirect("checkout")
         except checkout_service.PaymentDeclined as error:
+            events.record(events.Kind.PAYMENT_FAILED, request, detail="card declined")
+            form.add_error(None, str(error))
+        except checkout_service.PaymentUnconfirmed as error:
+            events.record(events.Kind.PAYMENT_FAILED, request, detail="gateway result not confirmed")
             form.add_error(None, str(error))
         except checkout_service.CheckoutError as error:
             messages.error(request, str(error))
@@ -93,8 +100,14 @@ def apply_coupon(request):
     if existing:
         messages.error(request, "Only one coupon can be applied per order.")
         return redirect("checkout")
+    # SEC-24: a buyer who keeps entering wrong codes is paused, so codes cannot be guessed.
+    if ratelimit.is_limited("coupon_failures", request.user.pk):
+        events.record(events.Kind.RATE_LIMITED, request, detail="coupon_failures")
+        messages.error(request, "Too many invalid coupon attempts. Please try again later.")
+        return redirect("checkout")
     try:
         coupon = coupons.find(request.POST.get("code", ""))
+        coupons.check_buyer(coupon, request.user)
         summary = checkout_service.build_summary(
             Cart.objects.filter(user=request.user).first()
         )
@@ -102,6 +115,8 @@ def apply_coupon(request):
         if problem:
             raise coupons.CouponError(problem)
     except coupons.CouponError as error:
+        ratelimit.hit("coupon_failures", request.user.pk)
+        events.record(events.Kind.COUPON_REJECTED, request, detail=str(error)[:100])
         messages.error(request, str(error))
     else:
         request.session[coupons.SESSION_KEY] = coupon.code
@@ -147,6 +162,7 @@ def checkout_complete(request):
     try:
         order = checkout_service.complete_hosted_payment(request.user, request.GET.get("session_id", ""))
     except checkout_service.CheckoutError as error:
+        events.record(events.Kind.PAYMENT_FAILED, request, detail="hosted payment not confirmed")
         messages.error(request, str(error))
         return redirect("cart")
     request.session.pop(coupons.SESSION_KEY, None)
@@ -171,8 +187,12 @@ def order_confirmation(request, pk):
 
 def _own_order_or_404(request, order_id):
     """The buyer's own order. Anyone else's order looks like it does not exist."""
-    queryset = Order.objects.prefetch_related("items__book")
-    return get_object_or_404(queryset, pk=order_id, user=request.user)
+    order = Order.objects.prefetch_related("items__book").filter(pk=order_id).first()
+    if order is None or order.user_id != request.user.pk:
+        if order is not None:
+            events.record(events.Kind.AUTHZ_DENIED, request, detail=f"order {order_id} belongs to another buyer")
+        raise Http404("Order not found")
+    return order
 
 
 def build_invoice(order):
@@ -271,6 +291,7 @@ def tracking_webhook(request):
     signature = request.headers.get("X-Carrier-Signature", "")
     expected = hmac.new(secret.encode(), request.body, hashlib.sha256).hexdigest()
     if not hmac.compare_digest(expected, signature):
+        events.record(events.Kind.WEBHOOK_REJECTED, request, detail="bad carrier signature")
         return HttpResponse(status=403)
     try:
         payload = json.loads(request.body or b"{}")

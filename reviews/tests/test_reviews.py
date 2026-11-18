@@ -179,6 +179,9 @@ class ReviewSubmissionTests(TestCase):
         bad = Review.objects.create(book=self.book, user=self.other, rating=1)
         admin = User.objects.create_superuser("admin@example.com", "pw")
         self.client.force_login(admin)
+        session = self.client.session  # Django admin needs the second factor (SEC-14)
+        session["moderation_verified_until"] = __import__("time").time() + 1800
+        session.save()
         response = self.client.post(
             reverse("admin:reviews_review_delete", args=[bad.pk]), {"post": "yes"}
         )
@@ -190,6 +193,10 @@ class ReviewSubmissionTests(TestCase):
     def test_review_html_is_escaped(self):
         self.deliver()
         self.post(rating=5, comment="<script>alert(1)</script>")
+        # Markup is held by the content filter (SEC-29); even after an admin approves it, it is escaped (SEC-27).
+        review = Review.objects.get(book=self.book, user=self.buyer)
+        self.assertEqual(review.status, Review.Status.HELD)
+        Review.objects.filter(pk=review.pk).update(status=Review.Status.PUBLISHED)
         page = self.client.get(reverse("book_detail", args=[self.book.pk]))
         self.assertNotContains(page, "<script>alert(1)</script>")
         self.assertContains(page, "&lt;script&gt;alert(1)&lt;/script&gt;")

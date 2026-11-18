@@ -32,6 +32,24 @@ Software engineering course project.
 - Set `DJANGO_FORCE_HTTPS=1` in production: Django redirects HTTP to HTTPS, sends HSTS and marks cookies secure. TLS 1.2+ itself is configured on the web server or proxy in front of Django, which must send `X-Forwarded-Proto`.
 - `Order.shipping_address` is encrypted at rest (Fernet). Set `FIELD_ENCRYPTION_KEY` to a key from `python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"`. If it is empty, a key is derived from `DJANGO_SECRET_KEY`. Do not change this key (or rotate the secret key while it is derived) once data exists, or stored addresses can no longer be decrypted (reading them raises an error instead of returning garbage). Migration `orders.0003` encrypts addresses that were saved before encryption existed.
 - The secret key, database password and encryption key are read from environment variables only; `.env` is git-ignored.
+- Phone numbers are encrypted the same way (migration `accounts.0006`); a keyed hash in `phone_digest` is used to look accounts up by phone.
+
+## Security requirements (SEC-1 to SEC-39)
+
+All 39 requirements in `Documents/SecurityRequirements_Online_Bookstore` are validated in
+[security validation](docs/testing/security-validation.md) (formatted copy:
+`Documents/SecurityValidationReport_Online_Bookstore.docx` / `.pdf`). Re-run the suite with
+`python manage.py test security -v 2`; it has one test class per requirement. In short:
+
+- Sessions end after 30 idle minutes; reset links and codes expire after 10 minutes; at most 5 reset emails per account per hour.
+- Login, registration, password reset, OTP entry and search are rate limited per client address (429 page); the limits are in `RATE_LIMITS` in settings. Behind a proxy, `REMOTE_ADDR` must be the real client address.
+- Every admin area (Django admin, user moderation, listing moderation) needs the emailed one-time code after the password.
+- Security events (logins, lockouts, resets, admin actions, authorisation failures, failed payments and more) are written to the append-only `SecurityEvent` table, which a PostgreSQL trigger protects, and to the `bookstore.security` logger. Run `python manage.py purge_security_events` daily to apply the 90-day retention.
+- Reviews with abusive words, links, markup or contact details are held until an admin approves them in Django admin.
+- Coupons can have a per-buyer limit, and repeated wrong codes pause the buyer for 15 minutes.
+- `python manage.py encrypted_backup --output-dir backups` writes an encrypted `pg_dump` (needs `BACKUP_ENCRYPTION_KEY`); `--decrypt FILE --to OUT.sql` restores it.
+- Users can read the privacy notice at `/accounts/privacy/`, and correct or delete their data from My account.
+- CI also runs `pip-audit` and Bandit; pull requests carry a security checklist (`.github/pull_request_template.md`).
 
 ## Tests
 
@@ -46,11 +64,12 @@ The test database is created automatically, so the `bookstore` role needs `CREAT
 
 | App | Tables |
 | --- | --- |
-| accounts | `User` (email, optional unique phone, hashed password, suspension/removal timestamps), `AccountAction` (audit log) |
+| accounts | `User` (email, optional unique phone stored encrypted, hashed password, suspension/removal timestamps), `AccountAction` (audit log) |
 | catalog | `Book` (title, author, ISBN, category, price, stock) |
 | cart | `Cart` (one per user), `CartItem` |
 | orders | `Order`, `OrderItem` (no card data is ever stored) |
-| reviews | `Review` (1-5 rating, one per user per book) |
+| reviews | `Review` (1-5 rating, one per user per book, published/held/rejected) |
+| security | `SecurityEvent` (append-only security log), `RateLimitBucket` (request counters) |
 
 ## Continuous integration and review rules
 
@@ -60,6 +79,8 @@ The workflow in `.github/workflows/django-tests.yml` (check name: **PostgreSQL t
 2. runs `python manage.py check` and `python manage.py makemigrations --check --dry-run`, which fails if a model change has no migration;
 3. applies the migrations and runs the test suite with `coverage`;
 4. fails the build if total coverage is below **70%** (`coverage report --fail-under=70`).
+
+A second job, **Dependency and static security scan**, runs `pip-audit` on `requirements.txt` and Bandit on the application code.
 
 `main` is protected by a branch ruleset: changes reach it only through a pull request, and each pull request needs **at least one approving review** from someone other than its author. The **PostgreSQL tests and coverage** check should also be marked as a required status check in that ruleset, so a pull request cannot be merged while it is red.
 

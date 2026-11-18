@@ -1,0 +1,2 @@
+500 searches, 50 workers, 3.40s wall time; average 278ms, p95 495ms, max 666ms
+p95 0.49s is within the 2.00s threshold

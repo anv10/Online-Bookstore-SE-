@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="panel editor">
+  <p class="eyebrow">PRIVACY NOTICE</p>
+  <h1>How we use your data.</h1>
+  <h2>What we collect</h2>
+  <ul>
+    <li><strong>Account details:</strong> your email address, phone number, optional name and a hashed password. We use them to sign you in, reset your password and send order confirmations.</li>
+    <li><strong>Delivery details:</strong> the shipping address you enter at checkout, used only to deliver your order. It is stored encrypted.</li>
+    <li><strong>Order details:</strong> what you bought, prices, coupons and order status, used to fulfil orders, issue invoices and meet accounting rules.</li>
+    <li><strong>Security records:</strong> sign-in and account security events with the time and network address, kept for 90 days to protect your account.</li>
+  </ul>
+  <h2>What we do not collect</h2>
+  <p>We never store card numbers or security codes. Payments go straight to the payment provider and we keep only its transaction reference. We do not use advertising trackers.</p>
+  <h2>Who sees it</h2>
+  <p>Sellers see the items and delivery address of orders that contain their books. The payment, delivery and messaging providers receive only what they need to do their job.</p>
+  <h2>Your rights</h2>
+  <p>You can correct your details or delete your account from <a href="{% url 'profile' %}">My account</a>. Order and invoice records are kept after deletion where the law requires it. For anything else, <a href="{% url 'support' %}">contact customer support</a>.</p>
+</section>
+{% endblock %}

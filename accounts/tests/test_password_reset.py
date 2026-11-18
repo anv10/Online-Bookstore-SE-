@@ -67,7 +67,10 @@ class PasswordResetTests(TestCase):
 
     def test_valid_link_sets_new_password(self):
         link = self._link()
-        self.assertEqual(self.client.get(link).status_code, 200)
+        # The token is moved out of the address bar into the session (SEC-18).
+        landing = self.client.get(link, follow=True)
+        self.assertEqual(landing.status_code, 200)
+        self.assertNotIn(link.rstrip("/").rsplit("/", 1)[-1], landing.redirect_chain[-1][0])
         response = self.client.post(link, {"password": "brand-new-9", "confirm_password": "brand-new-9"})
         self.assertRedirects(response, reverse("login"))
         self.user.refresh_from_db()

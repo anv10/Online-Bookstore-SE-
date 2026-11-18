@@ -10,3 +10,4 @@ venv/
 
 media/
 db.sqlite3
+backups/

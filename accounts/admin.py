@@ -7,7 +7,7 @@ from .models import AccountAction
 class AccountActionAdmin(admin.ModelAdmin):
     list_display = ("target", "action", "admin", "created_at")
     list_filter = ("action", "created_at")
-    search_fields = ("target__email", "target__phone", "admin__email", "reason")
+    search_fields = ("target__email", "admin__email", "reason")
     readonly_fields = ("target", "admin", "action", "reason", "created_at")
 
     def has_add_permission(self, request):

@@ -7,7 +7,9 @@ from django import forms
 from django.db import IntegrityError, transaction
 
 from . import throttle
-from .models import User
+from security import events
+
+from .models import User, phone_digest
 
 PHONE_RE = re.compile(r"^\+?\d{7,15}$")
 
@@ -39,7 +41,7 @@ class RegistrationForm(forms.Form):
         value = re.sub(r"[\s-]", "", self.cleaned_data["phone"])
         if not PHONE_RE.match(value):
             raise ValidationError("Enter a valid phone number.")
-        if User.objects.filter(phone=value).exists():
+        if User.objects.filter(phone_digest=phone_digest(value)).exists():
             raise ValidationError("An account with this phone number already exists.")
         return value
 
@@ -69,7 +71,7 @@ class RegistrationForm(forms.Form):
         except IntegrityError:
             if User.objects.filter(email__iexact=self.cleaned_data["email"]).exists():
                 self.add_error("email", "An account with this email already exists.")
-            if User.objects.filter(phone=self.cleaned_data["phone"]).exists():
+            if User.objects.filter(phone_digest=phone_digest(self.cleaned_data["phone"])).exists():
                 self.add_error("phone", "An account with this phone number already exists.")
             return None
 
@@ -98,6 +100,7 @@ class LoginForm(AuthenticationForm):
         except ValidationError:
             minutes = throttle.record_failure(key)
             if minutes:
+                events.record(events.Kind.LOCKOUT, self.request, user=None, detail=f"locked for {minutes} minutes")
                 raise ValidationError(throttle.lock_message(minutes), code="locked")
             raise
         throttle.reset(key)
@@ -111,7 +114,8 @@ class PasswordResetRequestForm(forms.Form):
         value = self.cleaned_data["identifier"].strip()
         if "@" in value:
             return User.objects.filter(email__iexact=value, is_active=True).first()
-        return User.objects.filter(phone=re.sub(r"[\s-]", "", value), is_active=True).first()
+        digest = phone_digest(value)
+        return User.objects.filter(phone_digest=digest, is_active=True).first() if digest else None
 
 
 class SetNewPasswordForm(forms.Form):
@@ -156,4 +160,52 @@ class PasswordResetOTPForm(forms.Form):
         value = self.cleaned_data["identifier"].strip()
         if "@" in value:
             return User.objects.filter(email__iexact=value, is_active=True).first()
-        return User.objects.filter(phone=re.sub(r"[\s-]", "", value), is_active=True).first()
+        digest = phone_digest(value)
+        return User.objects.filter(phone_digest=digest, is_active=True).first() if digest else None
+
+
+class PersonalDataForm(forms.ModelForm):
+    """The personal data a user can correct themselves (SEC-35)."""
+
+    phone = forms.CharField(label="Phone number", max_length=32, required=False)
+
+    class Meta:
+        model = User
+        fields = ["full_name", "email", "phone"]
+        labels = {"full_name": "Full name", "email": "Email address"}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["email"].required = True
+        self.fields["full_name"].max_length = 150
+
+    def clean_email(self):
+        value = self.cleaned_data["email"].strip().lower()
+        if User.objects.filter(email__iexact=value).exclude(pk=self.instance.pk).exists():
+            raise ValidationError("An account with this email already exists.")
+        return value
+
+    def clean_phone(self):
+        value = re.sub(r"[\s-]", "", self.cleaned_data.get("phone") or "")
+        if not value:
+            raise ValidationError("Phone number is required")
+        if not PHONE_RE.match(value):
+            raise ValidationError("Enter a valid phone number.")
+        if User.objects.filter(phone_digest=phone_digest(value)).exclude(pk=self.instance.pk).exists():
+            raise ValidationError("An account with this phone number already exists.")
+        return value
+
+
+class AccountDeletionForm(forms.Form):
+    password = forms.CharField(widget=forms.PasswordInput, strip=False, label="Confirm with your password")
+    confirm = forms.BooleanField(label="I understand my account cannot be restored")
+
+    def __init__(self, user, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.user = user
+
+    def clean_password(self):
+        password = self.cleaned_data["password"]
+        if not self.user.check_password(password):
+            raise ValidationError("Password is incorrect.")
+        return password

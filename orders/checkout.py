@@ -32,6 +32,10 @@ class PaymentDeclined(CheckoutError):
     """The gateway refused the card, so no order was created and the cart is intact."""
 
 
+class PaymentUnconfirmed(CheckoutError):
+    """The gateway timed out or gave no usable answer, so no order was created (SEC-23)."""
+
+
 def money(value):
     return Decimal(value).quantize(MONEY, rounding=ROUND_HALF_UP)
 
@@ -149,12 +153,21 @@ def _place_paid_order(user, shipping_address, card, gateway=None, coupon_code=""
                 raise CheckoutError(f'Only {book.stock} left of "{book.title}". Lower the copies in your cart.')
             subtotal += money(book.price * item.quantity)
         coupon = coupons.find(coupon_code, for_update=True) if coupon_code else None
+        coupons.check_buyer(coupon, user)
         problem = coupons.minimum_problem(coupon, subtotal)
         if problem:
             # The buyer never sees a total that a coupon could not legally reach.
             raise coupons.CouponError(problem)
         totals = totals_for(subtotal, coupons.discount_for(coupon, subtotal))
-        result = gateway.charge(card, totals["total"])
+        try:
+            result = gateway.charge(card, totals["total"])
+        except Exception as error:
+            # SEC-23: a timeout or unknown result is never treated as paid.
+            logger.warning("Payment gateway gave no result (%s)", type(error).__name__)
+            raise PaymentUnconfirmed("We could not confirm your payment, so no order was created. Please try again.") from error
+        if result.success and not result.reference:
+            logger.warning("Payment gateway reported success without a transaction reference")
+            raise PaymentUnconfirmed("We could not confirm your payment, so no order was created. Please try again.")
         if not result.success:
             raise PaymentDeclined(result.error or "Payment failed. No money was taken.")
         order = Order.objects.create(
@@ -164,6 +177,7 @@ def _place_paid_order(user, shipping_address, card, gateway=None, coupon_code=""
             discount=totals["discount"],
             coupon_code=coupon.code if coupon else "",
             shipping_address=shipping_address,
+            payment_reference=result.reference[:255],
         )
         tracking.log_status(order, Order.Status.PAID, note="Payment received")
         if coupon:
@@ -196,7 +210,7 @@ def _place_paid_order(user, shipping_address, card, gateway=None, coupon_code=""
 
 def start_hosted_payment(user, shipping_address, success_url, cancel_url, coupon_code=""):
     """Record the payment and return the gateway page the buyer must be sent to."""
-    coupon = coupons.find(coupon_code) if coupon_code else None
+    coupon = coupons.check_buyer(coupons.find(coupon_code), user) if coupon_code else None
     summary = build_summary(Cart.objects.filter(user=user).first(), coupon)
     if not summary["lines"]:
         raise CheckoutError("Your cart is empty. Add a book before checking out.")
@@ -295,6 +309,7 @@ def complete_hosted_payment(user, session_id):
                 discount=pending.discount,
                 coupon_code=pending.coupon_code,
                 shipping_address=pending.shipping_address,
+                payment_reference=str(session.get("payment_intent") or pending.session_id or "")[:255],
             )
             tracking.log_status(order, Order.Status.PAID, note="Payment received")
             if pending.coupon_code:

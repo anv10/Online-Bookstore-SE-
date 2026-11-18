@@ -1,0 +1,16 @@
+== without a key
+CommandError: BACKUP_ENCRYPTION_KEY is not set; refusing to write an unencrypted backup.
+== with a key (real pg_dump)
+Encrypted backup written to backups/bookstore-20261118T072343.sql.enc (102213 bytes before encryption)
+file mode 600  backups/bookstore-20261118T072343.sql.enc
+dir mode 700
+plaintext 'legacy@example.com' in backup file: 0
+Decrypted 102213 bytes to backups/restore.sql
+plaintext found after decrypt: 1
+== pip-audit
+No known vulnerabilities found
+== bandit (CI command: app code, medium+ severity)
+exit code 0
+== bandit (whole repository including tests, medium+)
+[tester]	WARNING	nosec encountered (B608), but no failed test on file ./security/tests/test_sec_requirements.py:659
+exit code 0

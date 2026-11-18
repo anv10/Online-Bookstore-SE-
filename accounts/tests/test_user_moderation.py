@@ -10,6 +10,13 @@ from catalog.models import Book
 from orders.models import Order, OrderItem
 
 
+def verify_second_factor(client):
+    """Admin pages need the emailed second factor (SEC-14); mark this session as having passed it."""
+    session = client.session
+    session["moderation_verified_until"] = timezone.now().timestamp() + 1800
+    session.save()
+
+
 class UserModerationTests(TestCase):
     def setUp(self):
         self.admin = User.objects.create_user("admin@example.com", "Reading2026!", full_name="Admin Person")
@@ -19,6 +26,7 @@ class UserModerationTests(TestCase):
         )
         self.buyer = User.objects.create_user("buyer@example.com", "Reading2026!")
         self.client.force_login(self.admin)
+        verify_second_factor(self.client)
 
     def grant_admin(self, user):
         user.is_staff = True
@@ -216,6 +224,7 @@ class UserModerationTests(TestCase):
         self.assertEqual(self.client.get(self.detail_url()).status_code, 200)
         strict = Client(enforce_csrf_checks=True)
         strict.force_login(self.admin)
+        verify_second_factor(strict)
         self.assertEqual(
             strict.post(self.detail_url(), {"action": "suspend", "reason": "No token"}).status_code, 403
         )

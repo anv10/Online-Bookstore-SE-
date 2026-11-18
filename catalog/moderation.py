@@ -15,6 +15,9 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 from django.core.paginator import Paginator
+from django.utils.http import url_has_allowed_host_and_scheme
+
+from security import events, second_factor
 
 from .models import AdminChallenge, Book, ListingFlag, ModerationEvent
 
@@ -29,8 +32,20 @@ def _check_admin(request):
 
 
 def _verified(request):
-    value = request.session.get("moderation_verified_until", 0)
-    return value > timezone.now().timestamp()
+    return second_factor.is_verified(request)
+
+
+def _check_staff(request):
+    """The verification step serves every admin area (SEC-14), so any active staff account may use it."""
+    if not (request.user.is_authenticated and request.user.is_active and request.user.is_staff):
+        raise PermissionDenied
+
+
+def _next_url(request):
+    target = request.POST.get("next") or request.GET.get("next") or ""
+    if target and url_has_allowed_host_and_scheme(target, allowed_hosts={request.get_host()}, require_https=request.is_secure()):
+        return target
+    return "moderation_queue"
 
 
 class VerificationForm(forms.Form):
@@ -46,9 +61,9 @@ class DecisionForm(forms.Form):
 @login_required
 @require_http_methods(["GET", "POST"])
 def verify(request):
-    _check_admin(request)
+    _check_staff(request)
     if _verified(request):
-        return redirect("moderation_queue")
+        return redirect(_next_url(request))
     form = VerificationForm(request.POST if request.method == "POST" and request.POST.get("action") == "verify" else None)
     if request.method == "POST":
         if request.POST.get("action") == "send":
@@ -84,6 +99,7 @@ def verify(request):
                             challenge.save(update_fields=["code_hash"])
                             messages.error(request, "The verification email could not be sent. Check email configuration and retry.")
                         else:
+                            events.record(events.Kind.ADMIN_2FA_SENT, request)
                             messages.success(request, "Verification code sent to your account email.")
         elif request.POST.get("action") == "verify" and form.is_valid():
             with transaction.atomic():
@@ -98,10 +114,12 @@ def verify(request):
                     challenge.save(update_fields=["attempts", "code_hash"])
                 if valid:
                     request.session.pop("moderation_nonce", None)
-                    request.session["moderation_verified_until"] = (timezone.now() + timedelta(minutes=30)).timestamp()
-                    return redirect("moderation_queue")
+                    request.session[second_factor.SESSION_KEY] = (timezone.now() + timedelta(minutes=30)).timestamp()
+                    events.record(events.Kind.ADMIN_2FA_PASSED, request)
+                    return redirect(_next_url(request))
+                events.record(events.Kind.ADMIN_2FA_FAILED, request)
                 form.add_error("code", "Invalid or expired code. Request a new code if needed.")
-    return render(request, "catalog/moderation_verify.html", {"form": form})
+    return render(request, "catalog/moderation_verify.html", {"form": form, "next": _next_url(request) if _next_url(request) != "moderation_queue" else ""})
 
 
 @login_required
@@ -168,6 +186,7 @@ def decide(request, pk):
                 book.status = target
                 book.save(update_fields=["status"])
                 ModerationEvent.objects.create(book=book, admin=request.user, previous_status=previous, new_status=target, reason=form.cleaned_data["reason"])
+                events.record(events.Kind.ADMIN_ACTION, request, detail=f"listing {book.pk}: {previous} -> {target}")
                 if target != Book.Status.APPROVED:
                     book.flags.filter(state=ListingFlag.State.OPEN).update(
                         state=ListingFlag.State.UPHELD,

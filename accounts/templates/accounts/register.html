@@ -12,6 +12,7 @@
     <form method="post">
       {% csrf_token %}
       {{ form.as_p }}
+      <p class="muted">By creating an account you agree to how we use your data, explained in our <a href="{% url 'privacy' %}">privacy notice</a>.</p>
       <button class="button">Create account</button>
     </form>
     <p>Already registered? <a href="{% url 'login' %}">Log in</a>.</p>

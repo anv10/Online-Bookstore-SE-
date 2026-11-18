@@ -35,7 +35,7 @@ Original submitted test plan statuses remain Pending. This addendum reports auto
 ## Deviations and remaining checks
 
 - UC16 owner notification is an in-app seller notice, not an outbound moderation email. OTP verification does use email.
-- The second factor protects these moderation endpoints. Other pre-existing Django admin functions do not gain MFA in this change; do not claim SEC-14 for the entire application.
+- The second factor now covers every admin area: listing moderation, user account moderation and the Django admin at `/admin/` (security validation, SEC-14). See `docs/testing/security-validation.md`.
 - Sellers publish directly; moderation is post-publication. The report path lets buyers bring a listing back to the queue.
 - Staff provisioning uses Django staff + permission checks, matching existing permission-based seller provisioning; public users cannot grant themselves these privileges.
 - Real SMTP delivery, PostgreSQL migrations/tests/locking, Chrome/Firefox/Safari/Edge and mobile checks, deployment TLS, protected audit storage and human owner review remain unverified. Keep the PR draft until required validation and review are complete.

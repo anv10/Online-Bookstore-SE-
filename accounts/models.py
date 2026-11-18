@@ -1,8 +1,31 @@
+import hashlib
+import hmac
+import re
 from datetime import timedelta
 
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.db import models
+from django.conf import settings
 from django.utils import timezone
+
+from bookstore.fields import EncryptedTextField
+
+
+def normalise_phone(value):
+    return re.sub(r"[\s-]", "", value or "")
+
+
+def phone_digest(value):
+    """Keyed hash of a phone number, used to look accounts up by phone (SEC-17).
+
+    The number itself is stored encrypted, which makes it unsearchable; this
+    HMAC gives exact-match lookup and uniqueness without revealing the number.
+    """
+    value = normalise_phone(value)
+    if not value:
+        return None
+    key = (getattr(settings, "FIELD_ENCRYPTION_KEY", "") or settings.SECRET_KEY).encode()
+    return hmac.new(key, f"phone:{value}".encode(), hashlib.sha256).hexdigest()
 
 
 class UserManager(BaseUserManager):
@@ -24,7 +47,9 @@ class UserManager(BaseUserManager):
 
 class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True, null=True, blank=True)
-    phone = models.CharField(max_length=20, unique=True, null=True, blank=True)
+    # Encrypted at rest (SEC-17); phone_digest is the lookup and uniqueness key.
+    phone = EncryptedTextField(null=True, blank=True)
+    phone_digest = models.CharField(max_length=64, unique=True, null=True, blank=True, editable=False)
     full_name = models.CharField(max_length=150, blank=True)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
@@ -37,6 +62,14 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
+
+    def save(self, *args, **kwargs):
+        self.phone = normalise_phone(self.phone) or None
+        self.phone_digest = phone_digest(self.phone)
+        update_fields = kwargs.get("update_fields")
+        if update_fields is not None and "phone" in update_fields:
+            kwargs["update_fields"] = set(update_fields) | {"phone_digest"}
+        super().save(*args, **kwargs)
 
     @property
     def is_suspended(self):
@@ -55,7 +88,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         return "active"
 
     def __str__(self):
-        return self.email or self.phone
+        return self.email or self.phone or f"Deleted user #{self.pk}"
 
 
 class LoginThrottle(models.Model):

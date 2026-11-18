@@ -47,7 +47,7 @@ def _request(method, path, params=None):
         headers={"Authorization": f"Bearer {key}"},
     )
     try:
-        with urllib.request.urlopen(request, timeout=TIMEOUT_SECONDS) as response:
+        with urllib.request.urlopen(request, timeout=TIMEOUT_SECONDS) as response:  # nosec B310
             return json.loads(response.read().decode())
     except urllib.error.HTTPError as error:
         # Status only: neither the key nor the buyer's details are written to the log.

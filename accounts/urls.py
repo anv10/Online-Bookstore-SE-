@@ -12,6 +12,9 @@ urlpatterns = [
     path("password-reset/otp/new-password/", views.password_reset_otp_set, name="password_reset_otp_set"),
     path("password-reset/<uidb64>/<token>/", views.password_reset_confirm, name="password_reset_confirm"),
     path("me/", views.profile, name="profile"),
+    path("me/update/", views.profile_update, name="profile_update"),
+    path("me/delete/", views.profile_delete, name="profile_delete"),
+    path("privacy/", views.privacy, name="privacy"),
     path("admin/users/", moderation.user_list, name="user_admin_list"),
     path("admin/users/<int:pk>/", moderation.user_detail, name="user_admin_detail"),
 ]
