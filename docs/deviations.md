@@ -2,7 +2,7 @@
 
 Where the build differs from the documents we submitted, and why. Status is current as of the end of Sprint 2. Every issue and pull request referenced here is closed and merged.
 
-The executed Test Plan, case by case with evidence, is in [`docs/testing/test-plan-results.md`](testing/test-plan-results.md). The 39 security requirements (SEC-1 to SEC-39) are validated separately in [`docs/testing/security-validation.md`](testing/security-validation.md) and `Documents/SecurityValidationReport_Online_Bookstore.pdf`. All 120 cases now meet their stated Expected Result. The two cases that need more than the unit suite were run with dedicated tools: FR-2_ST02 with `manage.py load_test_search` and FR-15_ST02 in headless Chrome at a 390x844 viewport.
+The executed Test Plan, case by case with evidence, is in [`docs/testing/test-plan-results.md`](testing/test-plan-results.md). The 39 security requirements (SEC-1 to SEC-39) are validated separately in [`docs/testing/security-validation.md`](testing/security-validation.md) and `Documents/04_Testing/Security_Validation_Report_Online_Bookstore.pdf`. All 120 cases now meet their stated Expected Result. The two cases that need more than the unit suite were run with dedicated tools: FR-2_ST02 with `manage.py load_test_search` and FR-15_ST02 in headless Chrome at a 390x844 viewport.
 
 Sources: the SRS, Test Plan and SAD (which contains the architecture diagram) in `Documents/`, the issues, and the notes in `docs/sprint2/`.
 

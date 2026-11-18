@@ -1,6 +1,6 @@
 # Security Validation Report
 
-Validation of SEC-1 to SEC-39 from `Documents/SecurityRequirements_Online_Bookstore`. Version 1.0, 18-11-2026. The formatted copy is [`Documents/SecurityValidationReport_Online_Bookstore.pdf`](../../Documents/SecurityValidationReport_Online_Bookstore.pdf).
+Validation of SEC-1 to SEC-39 from `Documents/01_Requirements/Security_Requirements_Online_Bookstore.pdf`. Version 1.0, 18-11-2026. The formatted copy is [`Documents/04_Testing/Security_Validation_Report_Online_Bookstore.pdf`](../../Documents/04_Testing/Security_Validation_Report_Online_Bookstore.pdf).
 
 **Result: 39 of 39 requirements pass** (4 also need a check once deployed). Before this work: 19 met, 12 partial, 8 missing. Security suite: 98 tests; full suite: 578 tests, all passing, 95% coverage. pip-audit and Bandit are clean.
 

@@ -10,6 +10,25 @@ Software engineering course project.
 - One app per area: `accounts`, `catalog`, `cart`, `orders`, `reviews`
 - Tests: Django test runner + `coverage` (70% gate, see `.coveragerc`)
 
+## Project documents
+
+Everything in `Documents/` is a PDF, grouped by phase. Where a document exists in two versions, both are kept and the file name says which is which.
+
+| Folder | Document | What it is |
+| --- | --- | --- |
+| `01_Requirements` | `SRS_v0.1_Original_Online_Bookstore.pdf` | First SRS (September): the FR and NFR list. Still the source for NFR-7 to NFR-12. |
+| | `SRS_v1.0_Detailed_Online_Bookstore.pdf` | Final SRS (11-11-2026): detailed requirements, acceptance criteria and traceability matrix. |
+| | `Security_Requirements_Online_Bookstore.pdf` | Security requirements SEC-1 to SEC-39. |
+| `02_Use_Cases` | `Use_Case_Diagram_Online_Bookstore.pdf` | Use case diagram. |
+| | `Use_Case_Flow_Online_Bookstore.pdf` | Use cases UC1 to UC16 with main, alternative and exception flows. |
+| `03_Architecture` | `SAD_Software_Architecture_Document_Online_Bookstore.pdf` | Software architecture document, including the architecture diagram as Figure 1. |
+| | `Architecture_Diagram_Online_Bookstore.pdf` | The architecture diagram on its own (same image as SAD Figure 1). |
+| `04_Testing` | `STP_Software_Test_Plan_Online_Bookstore.pdf` | Software test plan: scope, strategy, environment, schedule. |
+| | `Test_Plan_120_Cases_v1_Submitted_All_Pending_Online_Bookstore.pdf` | The 120 test cases as first submitted, before execution (all results Pending). |
+| | `Test_Plan_120_Cases_v2_Executed_Results_Online_Bookstore.pdf` | The same 120 cases with executed results recorded for FR-7 to FR-15. The full case-by-case results are in [test plan results](docs/testing/test-plan-results.md). |
+| | `Security_Validation_Report_Online_Bookstore.pdf` | Validation of SEC-1 to SEC-39: gaps found, fixes and evidence. |
+| `05_Deviations` | `Deviations_Online_Bookstore.pdf` | Where the build differs from the SRS, SAD and test plan, and why. |
+
 ## Local setup
 
 1. Install Python 3.11+ and PostgreSQL 14+.
@@ -36,9 +55,9 @@ Software engineering course project.
 
 ## Security requirements (SEC-1 to SEC-39)
 
-All 39 requirements in `Documents/SecurityRequirements_Online_Bookstore.pdf` are validated in
+All 39 requirements in `Documents/01_Requirements/Security_Requirements_Online_Bookstore.pdf` are validated in
 [security validation](docs/testing/security-validation.md) (formatted copy:
-`Documents/SecurityValidationReport_Online_Bookstore.pdf`). Re-run the suite with
+`Documents/04_Testing/Security_Validation_Report_Online_Bookstore.pdf`). Re-run the suite with
 `python manage.py test security -v 2`; it has one test class per requirement. In short:
 
 - Sessions end after 30 idle minutes; reset links and codes expire after 10 minutes; at most 5 reset emails per account per hour.
@@ -141,7 +160,7 @@ If sending fails, the error type is logged and the confirmation stays pending. R
 
 ## Test Plan results
 
-All 120 cases in `Documents/TestPlan_Online_Bookstore.pdf` have been executed against
+All 120 cases in `Documents/04_Testing/Test_Plan_120_Cases_v2_Executed_Results_Online_Bookstore.pdf` have been executed against
 `main` and recorded in [test plan results](docs/testing/test-plan-results.md). All 120
 pass, and every pass names the automated test, command or screenshot that proves it.
 The load case runs with `python manage.py load_test_search --requests 500 --workers 50`.

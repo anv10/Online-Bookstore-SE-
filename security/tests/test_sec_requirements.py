@@ -1,8 +1,8 @@
 """Security validation suite: one test class per requirement in
-Documents/SecurityRequirements_Online_Bookstore.pdf (SEC-1 to SEC-39).
+Documents/01_Requirements/Security_Requirements_Online_Bookstore.pdf (SEC-1 to SEC-39).
 
 Each class name starts with the requirement ID so the run log doubles as the
-evidence column of Documents/SecurityValidationReport_Online_Bookstore.pdf.
+evidence column of Documents/04_Testing/Security_Validation_Report_Online_Bookstore.pdf.
 Run just this suite with:
 
     python manage.py test security -v 2

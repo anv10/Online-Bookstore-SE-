@@ -1,6 +1,6 @@
 # Checkout and payment: issue #9
 
-Implements FR-5 (checkout and place order) on the Django/PostgreSQL application. Read alongside `Documents/SRS_Online_Bookstore.pdf` and `Documents/TestPlan_Online_Bookstore.pdf` (FR-5 cases). Payment gateway ownership sits with issue #10; this change supplies the checkout flow and the gateway seam it plugs into.
+Implements FR-5 (checkout and place order) on the Django/PostgreSQL application. Read alongside `Documents/01_Requirements/SRS_v0.1_Original_Online_Bookstore.pdf` and `Documents/04_Testing/Test_Plan_120_Cases_v2_Executed_Results_Online_Bookstore.pdf` (FR-5 cases). Payment gateway ownership sits with issue #10; this change supplies the checkout flow and the gateway seam it plugs into.
 
 ## Flow
 

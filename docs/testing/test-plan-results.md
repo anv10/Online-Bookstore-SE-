@@ -1,6 +1,6 @@
 # Test Plan execution results
 
-Every case in `Documents/TestPlan_Online_Bookstore.pdf` executed against the merged `main` branch, with the result and the evidence for each one.
+Every case in `Documents/04_Testing/Test_Plan_120_Cases_v2_Executed_Results_Online_Bookstore.pdf` executed against the merged `main` branch, with the result and the evidence for each one.
 
 - Repository: `anv10/Online-Bookstore-SE-`, branch `main`
 - Sprint 2 close-out, executed after the 30 Oct freeze

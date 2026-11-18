@@ -1,6 +1,6 @@
 # Ratings and reviews: issue #18
 
-Implements FR-10 on top of the existing Django/PostgreSQL application. Read alongside `Documents/SRS_Online_Bookstore.pdf`, `Documents/TestPlan_Online_Bookstore.pdf`, `Documents/SecurityRequirements_Online_Bookstore.pdf` and `docs/sprint2/checkout-and-payment.md`.
+Implements FR-10 on top of the existing Django/PostgreSQL application. Read alongside `Documents/01_Requirements/SRS_v0.1_Original_Online_Bookstore.pdf`, `Documents/04_Testing/Test_Plan_120_Cases_v2_Executed_Results_Online_Bookstore.pdf`, `Documents/01_Requirements/Security_Requirements_Online_Bookstore.pdf` and `docs/sprint2/checkout-and-payment.md`.
 
 ## Buyer experience
 
