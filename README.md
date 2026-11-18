@@ -36,9 +36,9 @@ Software engineering course project.
 
 ## Security requirements (SEC-1 to SEC-39)
 
-All 39 requirements in `Documents/SecurityRequirements_Online_Bookstore` are validated in
+All 39 requirements in `Documents/SecurityRequirements_Online_Bookstore.pdf` are validated in
 [security validation](docs/testing/security-validation.md) (formatted copy:
-`Documents/SecurityValidationReport_Online_Bookstore.docx` / `.pdf`). Re-run the suite with
+`Documents/SecurityValidationReport_Online_Bookstore.pdf`). Re-run the suite with
 `python manage.py test security -v 2`; it has one test class per requirement. In short:
 
 - Sessions end after 30 idle minutes; reset links and codes expire after 10 minutes; at most 5 reset emails per account per hour.

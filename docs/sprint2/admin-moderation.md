@@ -1,6 +1,6 @@
 # Listing moderation: issue #19
 
-Implements FR-12 for listings, using the current Django/PostgreSQL application structure. Read alongside Documents/SRS_Online_Bookstore.docx, SecurityRequirements_Online_Bookstore.docx, UseCaseFlow.docx (UC16), ArchitectureDiagram.pdf and TestPlan_Online_Bookstore.docx. The architecture PDF predates the selected framework; the README's Django/PostgreSQL decision remains authoritative.
+Implements FR-12 for listings, using the current Django/PostgreSQL application structure. Read alongside Documents/SRS_Online_Bookstore.pdf, SecurityRequirements_Online_Bookstore.pdf, UseCaseFlow.pdf (UC16), the architecture diagram (Figure 1 of SAD_Online_Bookstore.pdf) and TestPlan_Online_Bookstore.pdf. The architecture diagram predates the selected framework; the README's Django/PostgreSQL decision remains authoritative.
 
 ## Setup and workflow
 
